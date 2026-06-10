@@ -1,0 +1,17 @@
+$themes: (
+    light: (primary: #42b883,
+        bg-color: aliceblue,
+        text: #333333,
+        border: #e5e5e5),
+    // 默认主题
+    hone: (primary: #42b883,
+        bg-color: aliceblue,
+        glass-bg: rgba(0, 0, 0, 0.1),
+
+        text: #333333,
+        border: #e5e5e5),
+    dark: (primary: #00c48c,
+        bg-color: #1e1e1e,
+        text: #eeeeee,
+        border: #333333)
+);

@@ -1,0 +1,14 @@
+@use 'sass:map';
+
+/**
+ * 把 SCSS 主题 map 转换成 CSS变量
+ */
+@mixin generate-theme-vars($themes) {
+    @each $theme-name, $theme-map in $themes {
+        [data-theme='#{$theme-name}'] {
+            @each $key, $value in $theme-map {
+                --color-#{$key}: #{$value};
+            }
+        }
+    }
+}

@@ -1,0 +1,103 @@
+.md-container {
+    border-radius: 10px;
+    margin: 16px 0;
+    overflow: hidden;
+    border: 1px solid #e5e5e5;
+
+    &__title {
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    &__content {
+        padding: 12px;
+        line-height: 1.7;
+    }
+
+    code {
+        margin: 0 3px;
+        padding: 3px 6px;
+        border-radius: 5px;
+        font-size: 14px;
+        letter-spacing: 1px;
+    }
+}
+
+/* =========================
+   TIP
+========================= */
+
+.md-tip {
+    border-color: #42b883;
+    background: #f0faf5;
+
+    .md-container__title {
+        background: rgba(66, 184, 131, 0.12);
+        color: #42b883;
+        border: transparent !important;
+
+    }
+}
+
+/* =========================
+   WARNING
+========================= */
+
+.md-warning {
+    border-color: #f59e0b;
+    background: #fffbeb;
+
+    .md-container__title {
+        background: rgba(245, 158, 11, 0.12);
+        color: #f59e0b;
+    }
+
+    code {
+        background-color: #e3ac4e !important;
+        color: white !important;
+        border: transparent !important;
+
+    }
+}
+
+/* =========================
+   DANGER
+========================= */
+
+.md-danger {
+    border-color: #ef4444;
+    background: #fef2f2;
+
+    .md-container__title {
+        background: rgba(239, 68, 68, 0.12);
+        color: #ef4444;
+    }
+
+    code {
+        background-color: #ef4444 !important;
+        color: white !important;
+        border: transparent !important;
+
+    }
+}
+
+/* =========================
+   INFO
+========================= */
+
+.md-info {
+    border-color: #3b82f6;
+    background: #eff6ff;
+
+    .md-container__title {
+        background: rgba(59, 130, 246, 0.12);
+        color: #3b82f6;
+    }
+
+    code {
+        background-color: rgba(59, 131, 246, 0.8) !important;
+        color: white !important;
+        border: transparent !important;
+    }
+}

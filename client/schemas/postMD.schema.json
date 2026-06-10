@@ -1,0 +1,47 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": [
+        "title",
+        "category",
+        "tags",
+        "createdAt"
+    ],
+    "properties": {
+        "title": {
+            "type": "string",
+            "description": "文章标题"
+        },
+        "description": {
+            "type": "string"
+        },
+        "category": {
+            "type": "string",
+            "enum": [
+                "life",
+                "tech",
+                "note"
+            ]
+        },
+        "tags": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "createdAt": {
+            "type": "string",
+            "description": "创建时间"
+        },
+        "updatedAt": {
+            "type": "string"
+        },
+        "cover": {
+            "type": "string"
+        },
+        "draft": {
+            "type": "boolean"
+        }
+    },
+    "additionalProperties": false
+}

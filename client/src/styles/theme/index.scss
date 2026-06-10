@@ -1,0 +1,13 @@
+@use 'sass:map';
+@use './themes' as *;
+@use './mixins' as *;
+
+// 默认主题
+:root {
+    @each $key, $value in map.get($themes, hone) {
+        --#{$key}: #{$value};
+    }
+}
+
+/* 生成所有主题 */
+@include generate-theme-vars($themes);

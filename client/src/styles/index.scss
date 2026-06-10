@@ -1,0 +1,13 @@
+@use './reset.scss';
+@use './fonts.scss';
+@use './md-base.scss';
+@use './md-table.scss';
+@use './md-hljs.scss';
+
+
+@use './md-container.scss';
+@use './md-link.scss';
+
+* {
+    cursor: url('../assets/curs/NormalSelect.cur'), pointer;
+}
