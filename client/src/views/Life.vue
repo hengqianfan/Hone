@@ -1,299 +1,268 @@
 <template>
-    <div class="life">
-        <div class="life-momnents">
-            <div class="title-btn">
-                瞬间
-            </div>
-            <div class="moments-list">
+    <div class="life-all">
+        <div class="main">
 
-                <Moment v-for="item in moments" :key="item.src" :moment="item" />
+            <div class="this-day" v-for="(it, index) in activities" :key="index">
 
-            </div>
-        </div>
-        <div class="life-updates">
-            <div class="title-btn">
-                动态
-            </div>
-            <div v-for="group in groups" :key="group.month" class="month-group">
-                <!-- 时间轴 -->
-                <div class="timeline">
+                <div class="time">{{ formatDate(it.time) }}</div>
+                <div class="actions">
+                    <div class="action" v-for="p in it.actions">
 
-                    <div class="dot"></div>
+                        <div :class="`kind-${p.kind}`">{{ getTag(p.kind) }}</div>
 
-                    <div v-if="group !== groups[groups.length - 1]" class="line"></div>
-
-                </div>
-
-                <!-- 内容 -->
-                <div class="content">
-
-                    <div class="month">
-                        {{ group.month }}
-                    </div>
-
-                    <div class="cards">
-
-                        <CardPost v-for="item in group.items" :key="item.slug" :post="item"></CardPost>
-
-
+                        <router-link :to="`/post/${p.url}`" class="text">
+                            {{ getText(p) }}
+                        </router-link>
+                        <!-- <div :class="`kind-${p.kind}`">{{ getTag(p.kind) }}</div> -->
+                        <div class="moment">
+                            <img :src="p.src" alt="">
+                        </div>
+                        <!-- <router-link v-if="p.kind == 'post'" :to="`/post/${p.url}`" class="text">
+                            - 发布了《 {{ p.text }} 》
+                        </router-link>
+                        <router-link v-if="p.kind == 'life'" :to="`/post/${p.url}`" class="text">
+                            - 「 {{ p.text }} 」
+                        </router-link>
+                        <router-link v-if="p.kind == 'life'" :to="`/post/${p.url}`" class="text">
+                            - 「 {{ p.text }} 」
+                        </router-link>
+                        <div class="kind-life" v-if="p.kind == 'life'">动态</div>
+                        <div class="kind-post" v-if="p.kind == 'post'">文章</div> -->
 
                     </div>
-
                 </div>
+
+
+
             </div>
+
+
+
         </div>
-
-
-
     </div>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue'
+<script lang="ts" setup>
+import { ref, computed, watch } from 'vue';
 import { usePostsStore } from '@/stores/posts'
-import CardPost from '@/components/CardPost/index.vue'
-import Moment from '@/components/CardMoment/index.vue'
-import { moments } from '@/config/moments'
-
-
+import { formatDate } from '@/utils/textFormat'
+import type { Post } from '@/types/post'
+import type { Moment } from '@/types/moment'
 
 
 const postsStore = usePostsStore()
 
-const groups = computed(() => {
+interface theDay {
+    time: number
+    actions: action[]
+}
 
-    const map = new Map()
+interface action {
+    kind: 'post' | 'life' | 'status' | 'moment' | string
+    text: string
+    url?: string
+    src?: string
+}
 
-    postsStore.posts
-        .filter(item => item.category === 'life')
-        .forEach(item => {
 
-            const month = item.publishedAt.slice(0, 7)
 
-            if (!map.has(month)) {
-                map.set(month, [])
-            }
+/**
+ * 合并帖子与动态数据，生成统一的时间线数组
+ * @param posts 帖子列表
+ * @param moments 动态列表
+ * @returns 合并后的 theDay[]，按日期降序（最新在前）
+ */
+const setActivities = (posts: Post[], moments?: Moment[]): theDay[] => {
+    // 1. 获取今天的日期字符串（用于 moments 缺失日期时）
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
 
-            map.get(month).push(item)
-        })
+    // 2. 按日期分组（将两种数据源统一处理）
+    const grouped = {} as Record<string, action[]>;
 
-    return Array
-        .from(map.entries())
-        .map(([month, items]) => ({
-            month,
-            items
+    // 处理 posts
+    posts.forEach(post => {
+        const date = String(post.publishedAt).slice(0, 8); // 取 YYYYMMDD
+        if (!grouped[date]) grouped[date] = [];
+        grouped[date].push({
+            kind: post.category || 'post',
+            text: post.title,
+            url: post.slug,
+            src: ''
+        });
+    });
+
+    // 处理 moments
+    // moments.forEach(m => {
+    //     const dateKey = m.date || todayStr;
+    //     if (!grouped[dateKey]) grouped[dateKey] = [];
+    //     grouped[dateKey].push({
+    //         kind: 'moment',
+    //         text: m.title || '',
+    //         url: '',
+    //         src: m.src || ''
+    //     });
+    // });
+
+    // 3. 转换为 theDay[] 并按日期降序排序
+    return Object.entries(grouped)
+        .map(([date, actions]) => ({
+            time: Number(date),
+            actions
         }))
+        .sort((a, b) => b.time - a.time);
+};
+
+
+const activities = computed(() => {
+    const recentPosts = postsStore.getPostsWithinDays(120)
+    return setActivities(recentPosts)
 })
+
+
+const getTag = (kind: string) => {
+    if (kind == 'post') {
+        return '文章'
+    } else if (kind == 'life') {
+        return '动态'
+    } else if (kind == 'moment') {
+        return '瞬间'
+    }
+}
+
+
+const getText = (p: action) => {
+    if (p.kind == 'post') {
+        return `  发布了《  ${p.text}  》`
+    } else if (p.kind == 'life') {
+        return `「 ${p.text} 」`
+    } else if (p.kind == 'moment') {
+        return `📷 拍下了：${p.text}`
+    }
+}
 </script>
 
 <style lang="scss" scoped>
-.life {
-    display: flex;
-    width: 100%;
-    min-height: 100vh;
-    background-color: rgb(230, 230, 230);
-
-
-    .title-btn {
-        margin: 12px;
-
-        padding: 12px 18px;
-
-        font-size: 18px;
-        font-weight: 700;
-
-        color: var(--text-color);
-
-        border: 1px solid var(--border-color);
-
-        border-radius: 14px;
-
-        background: rgb(255 255 255 / 6%);
-        backdrop-filter: blur(12px);
-
-        transition: .25s;
-
-        &:hover {
-            border-color: var(--theme-color);
-
-            color: var(--theme-color);
-
-            transform: translateY(-2px);
-
-            box-shadow:
-                0 8px 24px rgb(0 0 0 / 8%);
-        }
-    }
-
-    .life-momnents {
-        background-color: rgb(240, 240, 240);
-        flex: 0 0 100px;
-        overflow: hidden;
-        transition: all 0.8s ease;
-        display: flex;
-        flex-direction: column;
-
-        .moments-list {
-            display: none;
-            transition: all 0.8s ease;
-
-        }
-    }
-
-    .life-updates {
-        background-color: rgb(230, 230, 230);
-        flex: 1;
-        transition: all 0.8s ease;
-    }
-
-    &:has(.life-momnents:hover) {
-        transition: all 0.8s ease;
-
-        .life-momnents {
-            flex-basis: calc(100% - 100px);
-            transition: all 0.8s ease;
-
-            .moments-list {
-                flex: 1;
-                display: block;
-                padding: 20px;
-
-                overflow-y: auto;
-
-                column-count: 4;
-
-                column-gap: 10px;
-
-                column-fill: balance;
-                transition: all 0.8s ease;
-            }
-
-        }
-
-        .life-updates {
-            flex: 0 0 100px;
-            transition: all 0.8s ease;
-
-            .month-group {
-                display: none;
-                transition: all 0.8s ease;
-
-            }
-        }
-    }
-}
-
-
-
-.month-group {
-    display: flex;
-    gap: 24px;
-}
-
-.timeline {
-    width: 24px;
+.life-all {
+    // width: 100%;
+    background-color: var(--bg-color);
+    padding: 15px;
+    margin: 0px auto;
+    max-width: 50%;
+    border-radius: 20px;
 
     display: flex;
     flex-direction: column;
     align-items: center;
-}
+    overflow-y: scroll;
+    max-height: 72vh;
 
-.dot {
-    width: 16px;
-    height: 16px;
+    &::-webkit-scrollbar {
+        display: none;
 
-    border-radius: 50%;
-
-    background: var(--theme-color);
-
-    box-shadow:
-        0 0 10px rgb(59 130 246 / 40%);
-}
-
-.line {
-    flex: 1;
-
-    width: 2px;
-
-    margin-top: 8px;
-
-    background: var(--border-color);
-}
-
-.content {
-    flex: 1;
-
-    padding-bottom: 50px;
-}
-
-.month {
-    margin-bottom: 20px;
-
-    font-size: 24px;
-    font-weight: 700;
-}
-
-.cards {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.card {
-    padding: 18px 20px;
-
-    border-radius: 14px;
-
-    border: 1px solid var(--border-color);
-
-    background: var(--card-bg);
-
-    transition: .25s;
-
-    &:hover {
-        transform: translateY(-2px);
-    }
-}
-
-.title {
-    font-size: 18px;
-    font-weight: 600;
-
-    margin-bottom: 10px;
-}
-
-.summary {
-    line-height: 1.8;
-    color: var(--text-2);
-
-    margin-bottom: 12px;
-}
-
-.date {
-    font-size: 13px;
-    color: var(--text-3);
-}
-
-@media (max-width: 768px) {
-
-    .life {
-        padding: 20px 16px;
     }
 
-    .month-group {
-        gap: 16px;
-    }
+    scrollbar-width: none;
 
-    .month {
-        font-size: 20px;
-    }
+    .main {
+        border-radius: 15px;
+        // background-color: rebeccapurple;
 
-    .card {
-        padding: 16px;
-    }
+        padding: 50px 0;
 
-    .title {
-        font-size: 16px;
+        display: flex;
+        flex-direction: column;
+        // align-items: center;
+
+        .this-day {
+            display: flex;
+            flex-direction: column;
+            padding: 20px 60px 40px 20px;
+            border-radius: 10px;
+
+
+            // background-color: var(--bg-color);
+            margin: 10px;
+
+            .time {
+                background-color: rgba(255, 255, 255, 0.1);
+                // background-color: rgba(100, 100, 100, 0.1);
+                color: white;
+                padding: 10px;
+                width: 120px;
+                text-align: center;
+                letter-spacing: 1px;
+                border-radius: 5px;
+
+            }
+
+            .actions {
+                margin-top: 20px;
+                background-color: var(--bg-color);
+                padding: 20px;
+
+                .action {
+                    margin: 10px 0;
+                    display: flex;
+                    gap: .625rem;
+                    align-items: center;
+                    color: white;
+
+                    .kind-life {
+                        padding: 4px 8px;
+                        background-color: rgba(68, 173, 159, 0.6);
+                        border-radius: 10px;
+                        color: white;
+                        font-size: 12px;
+                    }
+
+
+                    .kind-post {
+                        padding: 4px 8px;
+                        background-color: rgba(73, 98, 145, 0.6);
+                        border-radius: 10px;
+                        color: white;
+                        font-size: 12px;
+                    }
+
+                    .kind-moment {
+                        padding: 4px 8px;
+                        background-color: rgba(39, 92, 32, 0.6);
+                        border-radius: 10px;
+                        color: white;
+                        font-size: 12px;
+                    }
+
+                    .moment {
+                        display: none;
+
+                    }
+
+
+
+                }
+
+
+                .action:hover {
+                    .moment:hover {
+                        display: flex;
+
+                    }
+                }
+            }
+
+
+
+
+
+
+
+
+        }
+
+
+
+
     }
 }
 </style>

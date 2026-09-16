@@ -11,15 +11,20 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "date-fns": "^4.4.0",
     "dompurify": "^3.4.7",
     "front-matter": "^4.0.2",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.11.1",
+    "lunar-typescript": "^1.8.6",
     "markdown-it": "^14.1.1",
     "markdown-it-container": "^4.0.0",
     "pinia": "^3.0.4",
     "sass": "^1.99.0",
     "shiki": "^4.1.0",
+    "swiper": "^14.0.5",
+    "v-calendar": "^3.1.2",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4",
     "vue3-runtime-template": "^1.0.2"

@@ -10,11 +10,26 @@
                 {{ post.title }}
             </div>
             <div class="info">
-                <div class="publishDate">🕒 {{ post.publishedAt }}</div>
                 <div class="tags">
                     <span v-for="tag in post.tags" :key="tag" class="tag">{{ tag }}</span>
                 </div>
+                <div class="publishDate">🕒 {{ formatDate2(post.publishedAt) }}</div>
+
                 <!-- <div class="updateDate">更新时间：{{ post.publishedAt }}</div> -->
+            </div>
+            <div class="series" v-if="post.series">
+                <div class="series-title">文章已收录：</div>
+                <div class="series-name">《 {{ post.series }}》</div>
+            </div>
+            <div class="sync" v-if="post.sync">
+
+                <div class="sync-items">
+                    <div class="sync-item" v-for="(m, n) in post.sync">
+                        <i :class="`iconfont icon-${n}`"></i>
+                    </div>
+                </div>
+
+                <div class="sync-title">（ 已同步 ）</div>
             </div>
         </div>
 
@@ -22,7 +37,8 @@
             <MarkdownRenderer :html="post.content" />
 
             <aside class="toc" v-if="post.toc.length">
-                <div class="toc-title">目录</div>
+                <div class="toc-title">内容速览</div>
+
                 <div class="toc-list">
                     <div v-for="item in post.toc" :key="item.id" :class="['toc-item', 'level-' + item.level]">
                         <a :href="'#' + item.id" :title="item.text" target="_self">{{ item.text }}</a>
@@ -35,7 +51,7 @@
 
     </div>
 
-    <Footer />
+    <!-- <Footer /> -->
 </template>
 
 <script setup lang="ts">
@@ -44,6 +60,7 @@ import { useRoute, onBeforeRouteUpdate } from 'vue-router'
 
 import { usePostsStore } from '@/stores/posts'
 import { setDocumentTitle } from '@/utils/setDocumentTitle'
+import { formatDate2 } from '@/utils/textFormat'
 
 
 import MarkdownRenderer from '@/components/RenderMarkdown/index.vue'
@@ -146,30 +163,40 @@ onBeforeRouteUpdate(async (to) => {
 ========================= */
 .post-detail {
     width: 900px;
-    margin: 20px auto;
+    margin: 0 auto;
+
     padding-bottom: 200px;
+    border-radius: 30px;
+    background-color: rgba(0, 0, 0, 0.5);
 
     .content {
         position: relative;
+        padding: 10px 30px;
 
         /* 🛠️ 优化后的 TOC 样式 */
         .toc {
-            width: 220px;
+            max-width: 220px;
+            border-radius: 20px;
             position: fixed;
-            top: 60px;
+            top: 80px;
+            padding: 20px;
             /* 留出顶部进度条与视窗边缘的呼吸感 */
-            right: 20px;
+            // right: 20px;
+            left: calc(50% + 450px + 20px);
+            /* 50% + 主内容宽度的一半 + 间距 */
             font-size: 12px;
             display: flex;
             flex-direction: column;
+            background-color: var(--bg-color);
 
             // 💡 限制最大高度：视窗总高减去顶部和底部留白
             max-height: calc(100vh - 100px);
 
             .toc-title {
                 font-weight: 600;
+                font-size: 16px;
                 margin-bottom: 10px;
-                color: #333;
+                color: var(--bg-base-color-2, 1);
                 flex-shrink: 0;
                 /* 保证标题不被压缩 */
             }
@@ -199,13 +226,14 @@ onBeforeRouteUpdate(async (to) => {
 
 
                 a {
-                    color: #888;
+                    color: var(--bg-base-color-2, 1);
+
                     text-decoration: none;
                     transition: color 0.2s ease;
                 }
 
                 a:hover {
-                    color: #3b82f6;
+                    color: #2f5491;
                 }
             }
 
@@ -215,7 +243,8 @@ onBeforeRouteUpdate(async (to) => {
                 font-weight: 500;
 
                 a {
-                    color: #555;
+                    color: var(--bg-base-color-2, 1);
+
                 }
             }
 
@@ -239,7 +268,11 @@ onBeforeRouteUpdate(async (to) => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 30px 40px;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+    // background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 30px 30px 0 0;
 
     .title {
         font-size: 40px;
@@ -248,51 +281,128 @@ onBeforeRouteUpdate(async (to) => {
         white-space: nowrap;
         text-overflow: ellipsis;
         max-width: 100%;
-        padding: 2px 0;
-    }
+        padding: 10px 0;
+        letter-spacing: 2px;
+        // border-bottom: white 2px dashed;
+        // color: var(--font-color);
+        position: relative;
 
-    .info {
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        font-size: 14px;
-        gap: 0.625rem;
-        // flex-direction: column;
+        &::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 0;
 
-        // div {
-        //     padding: 4px 8px;
-        //     background-color: #edeaea;
-        //     border-radius: 10px;
-        //     color: #777;
-        // }
+            width: 100%;
+            height: 2px;
 
-        .publishDate {
-            padding: 8px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #edeaea;
+            background: repeating-linear-gradient(90deg,
+                    #889690 0 8px,
+                    transparent 8px 16px);
 
-            color: #777;
-            /* background-color: #e0f2fe; */
-            /* color: #0284c7; */
+            background-size: 200% 100%;
+            animation: dash-flow 1.2s linear infinite;
         }
 
-        .tags {
-            gap: .3125rem;
-            display: flex;
+        @keyframes dash-flow {
+            from {
+                background-position-x: 0;
+            }
 
-            span {
-                padding: 4px 8px;
-                padding: 8px 12px;
-
-                background-color: #edeaea;
-                border-radius: 10px;
-                color: #777;
+            to {
+                background-position-x: 16px;
             }
         }
     }
+
+    .info {
+        padding: 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 14px;
+        gap: 0.625rem;
+
+
+        .publishDate {
+
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            padding-bottom: 5px;
+            color: #ecebeb;
+
+        }
+
+        .tags {
+            gap: 10px;
+            display: flex;
+            padding: 10px;
+
+            span {
+                // padding: 4px 8px;
+                padding: 6px 12px;
+                font-size: 12px;
+                background-color: var(--post-detail-head-tag);
+                border-radius: 15px;
+                color: var(--post-detail-head-tag-text);
+            }
+        }
+    }
+
+    .series {
+        // background-color: #2f5491;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+
+        .series-title {
+            font-size: 14px;
+            padding: 5px 0;
+        }
+
+        .series-name {
+            font-size: 12px;
+            padding: 5px 0;
+            text-indent: 20px;
+        }
+    }
+
+
+    .sync {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        // margin-top: 10px;
+
+
+        .sync-title {
+            font-size: 12px;
+            padding: 5px 0;
+        }
+
+        .sync-items {
+            padding: 15px 0;
+            display: flex;
+            gap: .625rem;
+            padding-right: 20px;
+
+            .sync-item {
+                i {
+                    background-color: rgb(90, 82, 99);
+                    padding: 5px;
+                    font-size: 20px;
+                    border-radius: 50%;
+                }
+            }
+        }
+    }
+
+
 }
 </style>

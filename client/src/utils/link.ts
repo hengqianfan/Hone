@@ -35,3 +35,10 @@ export const getIconURL_img = (mo: string, fallback = '/assets/icons/project.png
 export const getIconURL_icon = (mo: string): string => {
     return `iconfont icon-${mo}`
 }
+
+export const getImgURL_img = (mo: string, fallback = '/assets/icons/project.png'): string => {
+    if (mo) {
+        return `${honeConfig.base}${mo}`
+    }
+    return fallback
+}

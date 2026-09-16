@@ -1,3 +1,6 @@
+// 
+type DateString = `${number}${number}${number}${number}${number}${number}${number}${number}`
+
 export interface TocItem {
     level: number
     text: string
@@ -14,6 +17,13 @@ export interface FrontMatterAttributes {
     updatedAt?: string
     summary?: string
     visibility?: boolean
+    series?: string
+    sync?: {
+        bilibili?: string
+        heihe?: string
+        redbook?: string
+        douyin?: string
+    }
 }
 
 
@@ -29,4 +39,11 @@ export interface Post {
     content: string
     summary?: string
     toc: TocItem[]
+    series?: string
+    sync?: {
+        bilibili?: string
+        heihe?: string
+        redbook?: string
+        douyin?: string
+    }
 }

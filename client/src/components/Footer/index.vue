@@ -1,7 +1,7 @@
 <template>
     <div class="footer">
         <div class="site-name">界·衡千帆</div>
-        <div class="site-intro">一个不能但却想要永远更新的独立博客</div>
+        <div class="site-intro">{{ honeConfig.siteIntro }}</div>
         <div class="badges">
             <!-- <img alt="Static Badge"src="https://img.shields.io/badge/vue-技术框架-red.svg?logo=vitepress&logoColor=white&labelColor=79bfc9" /> -->
 
@@ -14,20 +14,24 @@
 </template>
 
 <script lang="ts" setup>
+import { honeConfig } from '@/config/main';
 </script>
 
 <style lang="scss" scoped>
 .footer {
-    width: 100%;
+
     min-height: 100px;
+
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 10px;
-    padding: 20px;
+    margin: 20px;
+    padding: 20px 40px;
     font-size: 14px;
-    background-color: rgb(230, 230, 230);
+    background-color: var(--bg-color);
+    border-radius: 20px;
 
     .site-name {
         padding: 4px 12px;

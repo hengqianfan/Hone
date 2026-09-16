@@ -46,9 +46,11 @@ export function getAllPosts(): Post[] {
             tags: attributes.tags || [],
             icon: attributes.icon || '',
             summary: attributes.summary || '',
-            publishedAt: getPostPublishAt(slug) || attributes.publishedAt || '',
+            publishedAt: getPostPublishAt(slug) || attributes.publishedAt || '19971215',
             updatedAt: attributes.updatedAt || '',
             content: html,
+            series: attributes.series,
+            sync: attributes.sync,
             toc
         })
     }

@@ -64,29 +64,24 @@
 
     </div>
 
-    <Footer />
+
 </template>
 
 <script setup lang="ts">
-import {
-    computed,
-    ref
-} from 'vue'
+import { computed, ref } from 'vue'
 import { CATEGORY_MAP } from '@/constants/categories'
 import CardPost from '@/components/CardPost/index.vue'
-import Footer from '@/components/Footer/index.vue'
+
 
 import { usePostsStore } from '@/stores/posts'
 
-const postsStore =
-    usePostsStore()
+const postsStore = usePostsStore()
 
 /* =========================
    分类
 ========================= */
 
-const currentCategory =
-    ref('all')
+const currentCategory = ref('all')
 
 const categories = computed(
     () => [
@@ -95,7 +90,7 @@ const categories = computed(
             value: 'all'
         },
 
-        ...postsStore.articlesCategories.map(
+        ...postsStore.allCategories.map(
             item => ({
                 label:
                     CATEGORY_MAP[item as keyof typeof CATEGORY_MAP]
@@ -106,13 +101,8 @@ const categories = computed(
     ]
 )
 
-const setCategory = (
-    category: string
-) => {
-
-    currentCategory.value =
-        category
-
+const setCategory = (category: string) => {
+    currentCategory.value = category
     currentPage.value = 1
 }
 
@@ -127,10 +117,10 @@ const filteredPosts = computed(
             currentCategory.value ===
             'all'
         ) {
-            return postsStore.articles
+            return postsStore.posts
         }
 
-        return postsStore.articles.filter(
+        return postsStore.posts.filter(
             post =>
                 post.category ===
                 currentCategory.value
@@ -142,7 +132,7 @@ const filteredPosts = computed(
    分页
 ========================= */
 
-const PAGE_SIZE = 8
+const PAGE_SIZE = 12
 
 const currentPage = ref(1)
 
@@ -211,7 +201,6 @@ const emptyCells = computed(() => {
     flex-direction: column;
     align-items: center;
 
-    --bg-one: #eff1f4;
 
     .menu {
         display: flex;
@@ -226,7 +215,7 @@ const emptyCells = computed(() => {
 
         border-radius: 30px;
 
-        background-color: rgba(255, 255, 255, 0.5);
+        background-color: var(--bg-color);
         backdrop-filter: blur(5px);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
@@ -235,7 +224,7 @@ const emptyCells = computed(() => {
             border-radius: 15px;
             font-weight: 600;
             letter-spacing: 1px;
-
+            z-index: 10;
             color: #666;
 
             cursor: pointer;
@@ -244,7 +233,7 @@ const emptyCells = computed(() => {
                 all 0.25s ease;
 
             &:hover {
-                color: #3d6c92;
+                color: #273c4d;
 
                 background-color:
                     rgba(255,
@@ -254,20 +243,20 @@ const emptyCells = computed(() => {
             }
 
             &.active {
-                color: white;
-
+                color: rgb(238, 232, 232);
                 background-color:
-                    #81aeec;
+                    #293342;
             }
         }
     }
 
     .banner {
         width: 100%;
-        height: 45vh;
+        height: 30vh;
+        border-radius: 30px 30px 0 0;
 
         background-color:
-            var(--bg-one);
+            var(--bg-color);
 
         display: flex;
 
@@ -279,7 +268,7 @@ const emptyCells = computed(() => {
 
         letter-spacing: 10px;
 
-        color: #555;
+        color: #e7dcdc;
 
         opacity: 0.5;
     }
@@ -287,18 +276,16 @@ const emptyCells = computed(() => {
     .content {
         width: 100%;
 
-        display: flex;
-        flex-wrap: wrap;
+        padding: 50px 20px;
 
+        background-color: var(--bg-color);
+        display: grid;
+        grid-template-columns: repeat(4, auto);
+        /* 2列，宽度自适应内容 */
         justify-content: center;
-
-        gap: 20px;
-
-        padding:
-            50px 20px;
-
-        background-color:
-            var(--bg-one);
+        /* 整个网格水平居中 */
+        gap: 30px;
+        /* 卡片间距 */
 
         .post-item-placeholder {
             width: 320px;
@@ -321,7 +308,7 @@ const emptyCells = computed(() => {
             10px 0 40px;
 
         background-color:
-            var(--bg-one);
+            var(--bg-color);
 
         .page-btn {
             min-width: 40px;
@@ -337,13 +324,9 @@ const emptyCells = computed(() => {
 
             border-radius: 12px;
 
-            background-color:
-                rgba(255,
-                    255,
-                    255,
-                    0.8);
+            background-color: var(--bg-color);
 
-            color: #666;
+            color: #333;
 
             font-weight: 600;
 
@@ -369,18 +352,10 @@ const emptyCells = computed(() => {
             }
 
             &.active {
-                color: white;
+                color: rgba(var(--bg-base-color-2), 1);
 
-                background:
-                    linear-gradient(135deg,
-                        #5b8cff,
-                        #6ba8ff);
+                background: rgba(var(--bg-base-color), 0.6);
 
-                box-shadow:
-                    0 6px 18px rgba(91,
-                        140,
-                        255,
-                        0.35);
             }
 
             &.disabled {

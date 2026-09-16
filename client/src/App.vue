@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import Controller from './components/Controller/index.vue'
+import Setting from './components/Setting/index.vue'
+import LayoutBoke from './layouts/boke.vue'
 import BokeNav from './components/BokeNav/index.vue'
 import { useThemeStore } from '@/stores/theme'
 const themeStore = useThemeStore()
-
 onMounted(() => {
   document.addEventListener('click', async (e) => {
 
@@ -37,21 +38,21 @@ onMounted(() => {
 
 <template>
   <div id="app">
-    <Controller />
-    <!-- <BokeNav v-if="themeStore.webMode == 'boke'" /> -->
+    <LayoutBoke />
+    <!-- <Controller /> -->
+    <!-- <Setting /> -->
 
 
-    <router-view />
+    <!-- <router-view /> -->
   </div>
 </template>
 
 <style lang="scss" scoped>
 #app {
-  // background-color: #eff1f4;
+
   width: 100%;
   height: 100vh;
-  // background-image: url(./assets/imgs/banners/banner02.png);
-  // background-color: rgb(230, 230, 230);
+
   background-size: cover;
   background-position: center;
 

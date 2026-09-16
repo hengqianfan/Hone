@@ -7,14 +7,15 @@
 .markdown-body {
     font-size: 16px;
     line-height: 1.6;
-    color: #2d2d2d;
+
+    color: var(--font-color);
     padding: 5px;
 
-
-
     // 文本加粗
-    strong {
-        font-weight: 600;
+    strong,
+    b {
+        font-weight: 700;
+        // color: #3451b2;
     }
 
     /* 标题 */
@@ -65,7 +66,7 @@
     blockquote {
         // margin: 16px 0;
         padding: 15px;
-        background: #eeeff3;
+        background: rgba(var(--bg-base-color), 0.8);
         color: #555;
         border-radius: 6px;
         font-size: 14px;
@@ -95,12 +96,13 @@
 
         background-color: rgba(202, 209, 215, 0.434);
         margin: 0 3px;
-        padding: 2px 6px;
+        padding: 3px 8px;
         border-radius: 5px;
         font-size: 14px;
         letter-spacing: 1px;
         color: #3451b2;
         font-family: '优设标题黑';
+        // font-weight: 1000;
         // 字符间距
 
 
@@ -117,12 +119,13 @@
 
 // 正文段落
 .markdown-body>p {
-    margin: 12px 0;
+    margin: 1rem 0;
     text-align: justify;
     /* 文字两端对齐，更整齐 */
     line-height: 1.6;
     /* 同时优化行高会让对齐效果更好 */
-    // text-indent: 2em;
+    text-indent: 1.5em;
+    // letter-spacing: 0.5px;
 
 }
 

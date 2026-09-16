@@ -7,8 +7,8 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      component: () => import('@/views/Start.vue'),
-      name: 'Start',
+      component: () => import('@/views/Home.vue'),
+      name: 'Home',
     },
     {
       path: '/boke',
@@ -17,20 +17,64 @@ const router = createRouter({
     },
     {
       path: '/articles',
-      component: () => import('@/views/Articles.vue'),
+      component: () => import('@/views/ArticlesP.vue'),
       name: 'Articles',
       meta: {
         title: '文章列表',
       },
     },
     {
+      path: '/tags',
+      component: () => import('@/views/Tags.vue'),
+      name: 'Tags',
+      meta: {
+        title: '标签列表',
+      },
+    },
+    {
       path: '/lifes',
-      component: () => import('@/views/Life.vue'),
+      component: () => import('@/views/LifeP.vue'),
       name: 'Life',
       meta: {
         title: '生活碎片',
       },
     },
+    {
+      path: '/moments',
+      component: () => import('@/views/Moments.vue'),
+      name: 'Moments',
+      meta: {
+        title: '瞬间',
+      },
+    },
+
+    {
+      path: '/sites',
+      component: () => import('@/views/Sites.vue'),
+      name: 'Sites',
+      meta: {
+        title: '站点列表',
+      },
+    },
+    {
+      path: '/sitesManage',
+      component: () => import('@/views/SitesManager.vue'),
+      name: 'SitesManage',
+      meta: {
+        title: '站点管理',
+      },
+    },
+
+
+    {
+      path: '/settings',
+      component: () => import('@/views/Setting.vue'),
+      name: 'Settings',
+      meta: {
+        title: '站点列表',
+      },
+    },
+
     {
       path: '/post/:slug',
       component: () => import('@/views/PostDetail.vue'),

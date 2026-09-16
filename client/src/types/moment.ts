@@ -1,6 +1,7 @@
 export interface Moment {
-    date?: string
-    src: string
-    title?: string
-    description?: string
+    imgUrl: string
+    date: number | string
+    desc: string
+    // 地址
+    location?: string
 }

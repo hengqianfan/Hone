@@ -1,315 +1,368 @@
 <template>
+    <div class="controller-all">
 
-    <div class="boke-nav" @mouseenter="openMenu()" @mouseleave="closeMenu()">
+        <div class="menu">
 
-        <div class="boke-info">
-            <div class="boke-logo">
-                <img src="../../assets/imgs/logo/favicon.ico" alt="">
-            </div>
-            <div class="boke-name">{{ honeConfig.siteName }}</div>
-            <!-- <div class="boke-name">HONE</div> -->
+            <div class="menu-item" v-for="(item, index) in navlist" :key="index" @mouseenter="activeIndex = index"
+                @mouseleave="activeIndex = null">
 
-            <div class="boke-nav-menu" v-if="menuState">
-                <div class="boke-nav-menu-item" v-for="(item, index) in navlist" :key="index"
-                    @click="toPage(item.router)">
+                <!-- 一级菜单 -->
+                <div class="option" @click="item.children?.length ? null : toPage(item.router)">
                     <i :class="`iconfont ${item.icon}`"></i>
-                    <span>{{ item.text }}</span>
                 </div>
 
+                <!-- 二级菜单 -->
+                <Transition name="submenu">
+                    <div v-if="activeIndex === index && item.children?.length" class="submenu">
+                        <div class="submenu-item" v-for="(child, childIndex) in item.children" :key="childIndex"
+                            @click.stop="toPage(child.router)">
+                            <i v-if="child.icon" :class="`iconfont ${child.icon}`"></i>
+
+                            <span>{{ child.text }}</span>
+                        </div>
+                    </div>
+                </Transition>
+
             </div>
 
         </div>
-
-        <div class="time">
-            {{ timeString }}
-        </div>
-
-        <div class="social-links" v-show="honeConfig.socialLinks">
-            <div class="link" v-for="m in honeConfig.socialLinks">
-                <i :class="`iconfont icon-${m.icon}`"></i>
-            </div>
-        </div>
-
-
-
-
 
     </div>
-
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useThemeStore } from '@/stores/theme'
-import { honeConfig } from '@/config/main'
-import HomeBoke from '@/views/HomeBoke.vue'
 
-const navlist = [
-    { icon: 'icon-home', text: '博客首页', router: 'HomeBoke' },
-    { icon: 'icon-book', text: '知识体系', router: 'Articles' },
-    { icon: 'icon-img', text: '日常动态' },
-    { icon: 'icon-cloud', text: '我的宇宙' },
-
-
-]
-const activeIndex = ref<number | null>(null)
-const themeStore = useThemeStore()
 const router = useRouter()
+
+const activeIndex = ref<number | null>(null)
+
+interface NavItem {
+    icon: string
+    text: string
+    router?: string
+    children?: {
+        icon?: string
+        text: string
+        router: string
+    }[]
+}
+
+const navlist: NavItem[] = [
+    {
+        icon: 'icon-home',
+        text: '首页',
+        router: 'Home'
+    },
+
+    {
+        icon: 'icon-book',
+        text: '书籍',
+        children: [
+
+            {
+                icon: 'icon-category',
+                text: '分类模式',
+                router: 'Articles'
+            },
+            {
+                icon: 'icon-tag',
+                text: '标签模式',
+                router: 'Tags'
+            },
+            {
+                icon: 'icon-collection',
+                text: '合集模式',
+                router: 'Articles'
+            }
+        ]
+    },
+
+    {
+        icon: 'icon-life',
+        text: '生活',
+        children: [
+            {
+                text: '最近动态',
+                router: 'Life',
+                icon: 'icon-edit'
+            },
+
+            {
+                text: '心情瞬间',
+                router: 'Moments',
+                icon: 'icon-img2'
+            }
+        ]
+    },
+
+    {
+        icon: 'icon-nav',
+        text: '网站',
+        router: 'Sites'
+    },
+    {
+        icon: 'icon-nav',
+        text: '网站',
+        router: 'SitesManage'
+    },
+
+
+    {
+        icon: 'icon-settings',
+        text: '设置',
+        router: 'Settings'
+    }
+]
+
 const toPage = (path?: string) => {
     if (path) {
-        router.push({ name: path })
+        router.push({
+            name: path
+        })
     }
-}
-
-const timeString = ref("")
-
-let timer: any = null
-
-function updateTime() {
-
-    const now = new Date()
-
-    const h = String(now.getHours()).padStart(2, "0")
-    const m = String(now.getMinutes()).padStart(2, "0")
-    const s = String(now.getSeconds()).padStart(2, "0")
-
-    const week = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-
-    // timeString.value = `${h}:${m}:${s}    ${week[now.getDay()]}`
-    timeString.value = `${h}:${m}:${s}`
-
-
-}
-
-onMounted(() => {
-
-    updateTime()
-
-    timer = setInterval(updateTime, 1000)
-
-})
-
-onUnmounted(() => {
-    clearInterval(timer)
-})
-
-const menuState = ref(false)
-
-let closeTimer: any = null
-
-const openMenu = () => {
-    if (closeTimer) clearTimeout(closeTimer)
-    menuState.value = true
-}
-
-const closeMenu = () => {
-    closeTimer = setTimeout(() => {
-        menuState.value = false
-    }, 150)
 }
 </script>
 
 <style lang="scss" scoped>
-.time {
-    // 视觉上的微调
-    transform: translateY(1px);
-    margin-left: 10px;
-    font-size: 12px;
-    line-height: 12px;
-    letter-spacing: 1px;
-    color: #4e667e;
-    background-color: rgba(245, 245, 255, 0.8);
-    padding: 3px 6px;
-    text-align: center;
-    border-radius: 15px;
-    font-family: '优设标题黑';
-    min-width: 80px;
-}
-
-.boke-nav {
+.controller-all {
 
     position: fixed;
+
+    top: 12px;
     left: 50%;
     transform: translateX(-50%);
-    top: 10px;
 
-    background-color: rgba(245, 245, 255, 0.5);
+    z-index: 9999;
 
     display: flex;
     align-items: center;
-    padding: 6px 12px;
-    z-index: 1000;
-    gap: 10px;
-    border-radius: 20px;
+
+    padding: 10px 20px;
+
     border: 0.3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 30px;
 
-    box-shadow:
+    background-color: rgba(0, 0, 0, 0.5);
 
-        0 1px 0 rgba(255, 255, 255, 0.6), // 上高光
-        0 2px 4px rgba(0, 0, 0, 0.15); // 下阴影
+    .menu {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
 
-    .boke-info {
+    /*
+     * 一级菜单容器
+     *
+     * 这里非常重要：
+     * submenu 是 absolute，
+     * 所以需要让 menu-item 成为定位参考。
+     */
+    .menu-item {
+        position: relative;
+
         display: flex;
         align-items: center;
-        gap: 10px;
-
-
-
-        .boke-logo {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            overflow: hidden;
-            transform: translateX(-20%);
-            box-shadow:
-                0 1px 0 rgba(255, 255, 255, 0.6), // 上高光
-                0 2px 4px rgba(0, 0, 0, 0.15); // 下阴影
-
-            img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-        }
-
-        .boke-name {
-            font-size: 16px;
-            color: #272c3f;
-            font-family: '优设标题黑', sans-serif;
-            letter-spacing: 1px;
-            text-shadow:
-                0 1px 0 rgba(255, 255, 255, 0.6), // 上高光
-                0 2px 4px rgba(0, 0, 0, 0.15); // 下阴影
-
-        }
+        justify-content: center;
     }
 
-    .boke-nav-menu {
-        position: absolute;
-        top: 43px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(255, 255, 255, 0.7);
-        // border-radius: 25px;
-        padding: 10px 20px;
+    /*
+     * 一级按钮
+     */
+    .option {
         display: flex;
-        gap: 10px;
-        border-radius: 50px;
+        align-items: center;
+        justify-content: center;
 
+        width: 30px;
+        height: 30px;
 
+        border: 0.3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
 
-        .boke-nav-menu-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-            color: #333;
-            cursor: pointer;
-            transition: all 0.5s ease;
-            padding: 5px 10px;
-            border-radius: 20px;
+        background-color: rgba(255, 255, 255, 0.4);
 
+        cursor: pointer;
+
+        i {
+            font-size: 20px;
+            color: var(--icon-color);
+
+            transition: color 0.3s ease-in-out;
+        }
+
+        &:hover {
 
             i {
-                font-size: 18px;
-
-            }
-
-            span {
-                white-space: nowrap;
-                font-family: '优设标题黑';
-            }
-
-            &:hover {
-                background-color: white;
-                box-shadow:
-                    0 1px 0 rgba(255, 255, 255, 0.6), // 上高光
-                    0 2px 4px rgba(0, 0, 0, 0.15); // 下阴影
-
-
+                color: var(--primary-color);
             }
         }
     }
 
-    .social-links {
+
+    /*
+     * =========================
+     * 二级菜单
+     * =========================
+     */
+
+    .submenu {
+
+        position: absolute;
+
+        /*
+         * 一级按钮下面
+         */
+        top: calc(100% + 20px);
+        left: 50%;
+
+        transform: translateX(-50%);
+
         display: flex;
-        margin: 0 10px;
+        flex-direction: column;
+        align-items: center;
+
+        min-width: 110px;
         gap: 10px;
-        transition: all 0.5s ease;
 
-        .link {
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 3px;
-            border-radius: 50%;
+        padding: 15px;
 
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.5s ease;
+        border: 0.3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 14px;
+
+        background-color: rgba(0, 0, 0, 0.65);
+
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+
+        box-shadow:
+            0 8px 25px rgba(0, 0, 0, 0.15);
+
+        /*
+         * 防止鼠标从一级菜单移动到二级菜单时
+         * 因为间隔导致菜单消失
+         */
+        &::before {
+            content: '';
+
+            position: absolute;
+
+            top: -10px;
+            left: 0;
+
+            width: 100%;
+            height: 10px;
+        }
+    }
+
+    .submenu-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 5px;
+        white-space: nowrap;
+        color: var(--text-color);
+
+        font-size: 12px;
+
+        cursor: pointer;
+
+        transition:
+            background-color 0.2s ease,
+            color 0.2s ease,
+            transform 0.2s ease;
 
 
-            &:hover {
+        i {
 
-                box-shadow: none;
-                transform: scale(1.15);
-                transition: all 0.5s ease;
-
-
-            }
+            font-size: 14px;
         }
 
+        &:hover {
 
+            color: var(--primary-color);
+
+            background-color: rgba(255, 255, 255, 0.12);
+
+            // transform: translateX(2px);
+            transform: scale(1.1);
+        }
     }
 
 
-}
+    /*
+     * =========================
+     * 二级菜单动画
+     * =========================
+     */
 
-@media (max-width: 600px) {
-    .boke-nav {
-        .boke-info {
-            .boke-name {
-                display: none;
-            }
+    .submenu-enter-active,
+    .submenu-leave-active {
+        transition:
+            opacity 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .submenu-enter-from,
+    .submenu-leave-to {
+
+        opacity: 0;
+
+        transform:
+            translateX(-50%) translateY(-6px);
+    }
+
+
+    /*
+     * =========================
+     * 其他原来的样式
+     * =========================
+     */
+
+    .site-logo {
+        width: 50px;
+        height: 50px;
+
+        padding: 5px;
+
+        border-radius: 50%;
+
+        overflow: hidden;
+
+        img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            border-radius: 50%;
         }
+    }
 
-        .boke-nav-menu {
+    .site-info {
 
-            top: 43px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.7);
-            // border-radius: 25px;
-            padding: 4px;
-            display: flex;
-            gap: 5px;
-            border-radius: 52px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
 
+        .site-name {
 
+            font-size: 14px;
 
-            .boke-nav-menu-item {
-                gap: 2px;
-                font-size: 12px;
+            color: var(--text-color);
 
-                padding: 5px 10px;
-                border-radius: 20px;
+            font-family: '优设标题黑', sans-serif;
 
-                i {
-                    font-size: 12px;
+            letter-spacing: 1px;
 
-                }
-
-
-                &:hover {
-                    background-color: white;
-                    box-shadow:
-                        0 1px 0 rgba(255, 255, 255, 0.6), // 上高光
-                        0 2px 4px rgba(0, 0, 0, 0.15); // 下阴影
-
-
-                }
-            }
+            text-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.6),
+                0 2px 4px rgba(0, 0, 0, 0.15);
         }
     }
 }

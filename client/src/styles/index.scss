@@ -10,4 +10,29 @@
 
 * {
     cursor: url('../assets/curs/NormalSelect.cur'), pointer;
+    color: var(--font-color);
+
+    .typewriter-cursor {
+        display: inline-block;
+        width: 2px;
+        height: 1.2em;
+        background-color: #254452;
+        margin-left: 2px;
+        vertical-align: text-bottom;
+        animation: blink 0.8s step-end infinite;
+        line-height: 10px;
+
+    }
+
+    @keyframes blink {
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+    }
 }
