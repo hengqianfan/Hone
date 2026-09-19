@@ -113,14 +113,14 @@ export function registerOverlay(instance: any) {
   overlay = instance
 }
 
-let firstLoad = true
+// let firstLoad = true
 
 router.beforeEach(async (to, from, next) => {
   // 首次进入不做动画
-  if (firstLoad) {
-    firstLoad = false
-    return next()
-  }
+  // if (firstLoad) {
+  //   firstLoad = false
+  //   return next()
+  // }
 
   // 同页跳转（仅 hash/query 变化）不做动画
   if (to.path === from.path) return next()
