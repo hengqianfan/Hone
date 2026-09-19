@@ -1,8 +1,6 @@
 <template>
     <div class="articles-all">
 
-
-
         <!-- 分类栏 -->
         <div class="menu">
 
@@ -17,7 +15,6 @@
             </div>
 
         </div>
-
 
         <!-- 内容 -->
         <div class="content">
@@ -60,8 +57,6 @@
         </div>
 
     </div>
-
-
 </template>
 
 <script setup lang="ts">
@@ -69,10 +64,7 @@ import { computed, ref } from 'vue'
 import { CATEGORY_MAP } from '@/constants/categories'
 import CardPost from '@/components/CardPost/index.vue'
 
-
 import { usePostsStore } from '@/stores/posts'
-
-
 
 const postsStore = usePostsStore()
 
@@ -184,14 +176,13 @@ const nextPage = () => {
     currentPage.value++
 }
 
-
-// 假设每页固定 4 列
-const columns = 4;
+// 每行固定 4 列（与 CSS 桌面端列数保持一致）
+const columns = 4
 // 计算需要填充多少个空元素
 const emptyCells = computed(() => {
-    const remainder = postsStore.articles.length % columns;
-    return remainder === 0 ? 0 : columns - remainder;
-});
+    const remainder = postsStore.articles.length % columns
+    return remainder === 0 ? 0 : columns - remainder
+})
 </script>
 
 <style lang="scss" scoped>
@@ -200,12 +191,13 @@ const emptyCells = computed(() => {
     flex-direction: column;
     align-items: center;
 
+    /* 卡片间距统一由变量控制 */
+    --card-gap: 20px;
 
     .menu {
         display: flex;
 
         gap: 20px;
-        // margin: 20px auto;
         padding: 10px 20px;
         position: fixed;
         z-index: 999;
@@ -246,26 +238,43 @@ const emptyCells = computed(() => {
         }
     }
 
-
-
     .content {
-        width: 100%;
-        border-radius: 20px;
-        padding: 50px 20px;
+        max-width: 100%;
+        border-radius: 20px 20px 0 0;
+        padding: 20px;
         margin-top: 65px;
         background-color: var(--bg-color);
+
         display: grid;
-        grid-template-columns: repeat(4, auto);
-        /* 2列，宽度自适应内容 */
+        /* 桌面端固定 4 列，列宽均分容器，避免被写死的 320px 挤成 3 列 */
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         justify-content: center;
-        /* 整个网格水平居中 */
-        gap: 30px;
-        /* 卡片间距 */
+        /* 卡片撑满各自列宽 */
+        justify-items: stretch;
+        /* 同行卡片等高 */
+        align-items: stretch;
+        /* 横纵间距一致 */
+        gap: var(--card-gap);
+
+        /* 让 CardPost 跟随列宽 */
+        :deep(.card-post),
+        >* {
+            width: 100%;
+            box-sizing: border-box;
+        }
 
         .post-item-placeholder {
-            width: 320px;
-            // height: 200px;
+            width: 100%;
+            height: 100%;
+            min-height: 1px;
             background-color: transparent;
+        }
+
+        /* 移动端固定 1 列 */
+        @media (max-width: 768px) {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            padding: 12px;
+            gap: 16px;
         }
     }
 
@@ -282,8 +291,7 @@ const emptyCells = computed(() => {
         padding:
             10px 0 40px;
 
-        background-color:
-            var(--bg-color);
+
 
         .page-btn {
             min-width: 40px;
@@ -330,7 +338,6 @@ const emptyCells = computed(() => {
                 color: rgba(var(--bg-base-color-2), 1);
 
                 background: rgba(var(--bg-base-color), 0.6);
-
             }
 
             &.disabled {

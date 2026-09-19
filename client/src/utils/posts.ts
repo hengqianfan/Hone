@@ -45,6 +45,7 @@ export function getAllPosts(): Post[] {
             category: attributes.category || 'post',
             tags: attributes.tags || [],
             icon: attributes.icon || '',
+            cover: attributes.cover || '',
             summary: attributes.summary || '',
             publishedAt: getPostPublishAt(slug) || attributes.publishedAt || '19971215',
             updatedAt: attributes.updatedAt || '',

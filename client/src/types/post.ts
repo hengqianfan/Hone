@@ -13,6 +13,8 @@ export interface FrontMatterAttributes {
     category?: string
     tags?: string[]
     icon?: string
+    cover?: string
+
     publishedAt?: string
     updatedAt?: string
     summary?: string
@@ -34,6 +36,7 @@ export interface Post {
     category?: string
     tags: string[]
     icon: string
+    cover?: string
     publishedAt: string
     updatedAt: string
     content: string

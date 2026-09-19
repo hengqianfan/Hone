@@ -7,7 +7,7 @@
 
         </div>
         <myFooter />
-        <!-- <Setting /> -->
+
     </div>
 </template>
 
@@ -16,7 +16,7 @@ import { onMounted } from 'vue'
 import BokeNav from '@/components/BokeNav/index.vue'
 import myFooter from '@/components/Footer/index.vue'
 import VideoBackground from '@/components/Background/index.vue'
-import Setting from '@/components/Setting/index.vue'
+
 
 onMounted(() => {
     console.log('布局1加载完成')

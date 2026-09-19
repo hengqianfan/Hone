@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import Controller from './components/Controller/index.vue'
-import Setting from './components/Setting/index.vue'
+
 import LayoutBoke from './layouts/boke.vue'
 import BokeNav from './components/BokeNav/index.vue'
 import { useThemeStore } from '@/stores/theme'
+import PageTransition from '@/components/PageTransition/index.vue'
+import { registerOverlay } from '@/router'
+
+const transitionRef = ref<InstanceType<typeof PageTransition>>()
 const themeStore = useThemeStore()
 onMounted(() => {
+
+  registerOverlay(transitionRef.value)
   document.addEventListener('click', async (e) => {
 
     const target = e.target as HTMLElement
@@ -34,10 +40,13 @@ onMounted(() => {
   })
 })
 
+
+
 </script>
 
 <template>
   <div id="app">
+    <PageTransition ref="transitionRef" />
     <LayoutBoke />
     <!-- <Controller /> -->
     <!-- <Setting /> -->

@@ -139,6 +139,16 @@ export const sites: Site[] = [
         tags: ['开源', '音乐'],
         link: 'https://lxmusic.toside.cn/',
     },
+
+    {
+        name: '抖音',
+        categoryId: '003',
+        kind: '短视频',
+        icon: 'tiktok',
+        desc: '划时代的产物，潘多拉的魔盒',
+        tags: ['字节', '短视频'],
+        link: 'https://www.douyin.com/jingxuan',
+    },
     // ---------- 004 游戏世界 ----------
     {
         name: 'Steam',
@@ -196,5 +206,25 @@ export const sites: Site[] = [
         desc: '备用，防止失联',
         tags: ['vpn'],
         link: 'https://xn--6nq0hk9tdjr.site/#/dashboard',
+    },
+    // ---------- 009 论坛资讯 ----------
+    {
+        name: '知乎',
+        categoryId: '009',
+        kind: '知识社区',
+        icon: 'zhihu',
+        desc: '老牌知识论坛',
+        tags: ['社区', '知识'],
+        link: 'https://www.zhihu.com/',
+    },
+
+    {
+        name: '新浪微博',
+        categoryId: '009',
+        kind: '新闻资讯',
+        icon: 'sinaweibo',
+        desc: '即将成为时代的眼泪',
+        tags: ['微博', '咨询'],
+        link: 'https://weibo.com/',
     },
 ];

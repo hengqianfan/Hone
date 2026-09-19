@@ -16,10 +16,8 @@ import { useSettingStore } from '@/stores/settings'
 import video1 from '@/assets/videos/乡村夜景.mp4'
 import video2 from '@/assets/videos/云雾城市夜晚.mp4'
 import video3 from '@/assets/videos/千与千寻.mp4'
-import video4 from '@/assets/videos/开阔旷野.mp4'
 import video5 from '@/assets/videos/森林雪夜.mp4'
-import video6 from '@/assets/videos/雨夜.mp4'
-import video7 from '@/assets/videos/雨天圣诞树.mp4'
+import video4 from '@/assets/videos/雨夜.mp4'
 
 
 const settingStore = useSettingStore()
@@ -28,13 +26,13 @@ const settingStore = useSettingStore()
 
 const videoMap: Record<string, string> = {
 
-    '乡村夜景': video1,
-    '云雾城市夜晚': video2,
-    '千与千寻': video3,
-    '开阔旷野': video4,
+    '夏夜郊野': video1,
+    '城市霓虹': video2,
+    '海边列车': video3,
+    '窗外雨夜': video4,
     '森林雪夜': video5,
-    '雨夜': video6,
-    '雨天圣诞树': video7
+
+
 
 }
 

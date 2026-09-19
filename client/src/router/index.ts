@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { setDocumentTitle } from '@/utils/setDocumentTitle'
 
 
+
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -31,14 +33,7 @@ const router = createRouter({
         title: '标签列表',
       },
     },
-    {
-      path: '/lifes',
-      component: () => import('@/views/LifeP.vue'),
-      name: 'Life',
-      meta: {
-        title: '生活碎片',
-      },
-    },
+
     {
       path: '/moments',
       component: () => import('@/views/Moments.vue'),
@@ -110,7 +105,41 @@ const router = createRouter({
   }
 })
 
-router.afterEach((to: any) => {
+// 用闭包变量保存遮罩控制器
+let overlay: { cover: () => any; reveal: () => any } | null = null
+
+/** 在 App.vue 里注入遮罩实例 */
+export function registerOverlay(instance: any) {
+  overlay = instance
+}
+
+let firstLoad = true
+
+router.beforeEach(async (to, from, next) => {
+  // 首次进入不做动画
+  if (firstLoad) {
+    firstLoad = false
+    return next()
+  }
+
+  // 同页跳转（仅 hash/query 变化）不做动画
+  if (to.path === from.path) return next()
+
+
+
+  if (overlay) {
+    await overlay.cover()
+  }
+  next()
+})
+
+
+
+
+router.afterEach(async (to: any) => {
+  if (overlay) {
+    await overlay.reveal()     // 新页面就绪后揭开
+  }
   // 1. 如果路由元信息里定义了 title，优先使用
   if (to.meta?.title) {
     setDocumentTitle(to.meta.title);

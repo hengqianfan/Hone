@@ -80,21 +80,9 @@ const navlist: NavItem[] = [
     },
 
     {
-        icon: 'icon-life',
-        text: '生活',
-        children: [
-            {
-                text: '最近动态',
-                router: 'Life',
-                icon: 'icon-edit'
-            },
-
-            {
-                text: '心情瞬间',
-                router: 'Moments',
-                icon: 'icon-img2'
-            }
-        ]
+        text: '心情瞬间',
+        router: 'Moments',
+        icon: 'icon-life'
     },
 
     {
@@ -102,11 +90,11 @@ const navlist: NavItem[] = [
         text: '网站',
         router: 'Sites'
     },
-    {
-        icon: 'icon-nav',
-        text: '网站',
-        router: 'SitesManage'
-    },
+    // {
+    //     icon: 'icon-nav',
+    //     text: '网站',
+    //     router: 'SitesManage'
+    // },
 
 
     {

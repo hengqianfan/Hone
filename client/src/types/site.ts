@@ -8,6 +8,8 @@ export const CATEGORIES = [
     { id: '006', name: '软件工具' },
     { id: '007', name: '文档处理' },
     { id: '008', name: '生活娱乐' },
+    { id: '009', name: '论坛资讯' },
+
 
 
 
@@ -29,6 +31,7 @@ export const KINDS = {
     '006': ['网络工具', '设计工具', '办公工具', '开发工具', '效率工具', '安全工具'],
     '007': ['文档编辑', '表格处理', '演示制作'],
     '008': ['购物网站', '旅游出行', '美食餐饮', '运动健身'],
+    '009': ['知识社区', '新闻资讯'],
 } as const satisfies Record<CategoryId, readonly string[]>;
 
 export type KindId = (typeof KINDS)[CategoryId][number];

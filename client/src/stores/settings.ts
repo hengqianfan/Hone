@@ -7,7 +7,7 @@ export const useSettingStore = defineStore(
     () => {
 
         // 当前视频
-        const videoName = ref('乡村夜景')
+        const videoName = ref('夏夜郊野')
 
 
         // 修改视频

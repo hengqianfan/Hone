@@ -42,7 +42,7 @@
 
         </section>
 
-        <section class="card">
+        <!-- <section class="card">
 
             <h2>
                 主题切换
@@ -61,9 +61,9 @@
 
             </div>
 
-        </section>
+        </section> -->
 
-        <section class="card">
+        <!-- <section class="card">
 
             <h2>
                 站点管理
@@ -82,7 +82,7 @@
 
             </div>
 
-        </section>
+        </section> -->
 
 
     </div>
@@ -108,19 +108,17 @@ const settingStore = useSettingStore()
 
 const videos = [
 
-    '乡村夜景',
+    '夏夜郊野',
 
-    '云雾城市夜晚',
+    '城市霓虹',
 
-    '千与千寻',
-
-    '开阔旷野',
+    '海边列车',
 
     '森林雪夜',
 
-    '雨夜',
+    '窗外雨夜',
 
-    '雨天圣诞树'
+
 
 ]
 

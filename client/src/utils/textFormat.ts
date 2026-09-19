@@ -23,13 +23,13 @@ export const getPostPublishAt = (mo: string): string => {
 }
 
 
-export const formatDate = (dateNum: string | number): string => {
+export const formatDate = (dateNum: string | number | undefined): string => {
     const str = String(dateNum);
     return str.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
 }
 
 
-export const formatDate2 = (dateNum: string | number): string => {
+export const formatDate2 = (dateNum: string | number | undefined): string => {
     const str = String(dateNum);
     return str.replace(/(\d{4})(\d{2})(\d{2})/, '$1年$2月$3日');
 }

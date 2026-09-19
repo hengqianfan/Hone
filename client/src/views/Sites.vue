@@ -528,15 +528,16 @@ const pickKind = (kind: string) => {
     display: inline-flex;
     flex-wrap: wrap;
     gap: 2px;
-    padding: 3px;
+    padding: 8px;
     margin-bottom: 28px;
     background: var(--bg-soft);
     border: 1px solid var(--line);
     border-radius: 11px;
+
 }
 
 .np-kind {
-    padding: 6px 14px;
+    padding: 3px 12px;
     font-size: 12.5px;
     color: var(--text-dim);
     background: transparent;
@@ -544,6 +545,7 @@ const pickKind = (kind: string) => {
     border-radius: 8px;
     cursor: pointer;
     transition: .16s;
+    margin: 3px;
 }
 
 .np-kind:hover {

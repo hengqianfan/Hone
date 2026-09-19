@@ -22,7 +22,7 @@ export const honeConfig: HoneConfig = {
     personalIntro: '我？非先天性的中度社恐人士，无害型快乐宅男，技术发烧佬，乐于在不同的领域内贡献一些并没有什么毛用的东西。',
     // iconServerIP: 'https://raw.githubusercontent.com/hengqianfan/nIcon/refs/heads/main/repo/',
     iconServerIP: 'https://hengqianfan.github.io/NVP-ImageHost/images/icons/',
-    imgServerIP: 'https://hengqianfan.github.io/NVP-ImageHost/images/',
+    imgServerIP: 'https://hengqianfan.github.io/NVP-ImageHost/images/covers/',
 
 
     socialLinks: [
