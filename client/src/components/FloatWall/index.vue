@@ -165,7 +165,7 @@ onUnmounted(() => {
     min-height: 280px;
     overflow: hidden;
     border-radius: 20px;
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--danmaku-wall-bg-in);
     /* 内边距交给轨道计算控制，这里不再用 padding，避免与外层重复留白 */
 }
 

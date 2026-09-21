@@ -207,6 +207,35 @@ export const sites: Site[] = [
         tags: ['vpn'],
         link: 'https://xn--6nq0hk9tdjr.site/#/dashboard',
     },
+
+    {
+        name: 'V2',
+        categoryId: '006',
+        kind: '网络工具',
+        desc: '好用的代理器',
+        tags: ['vpn', '机场'],
+        link: 'https://github.com/2dust/v2rayN',
+    },
+    // ---------- 007 编辑阅读 ----------
+    {
+        name: '金山文档',
+        categoryId: '007',
+        kind: '文档软件',
+        icon: 'wps',
+        desc: '国内的Office',
+        tags: ['办公', '文档', '编辑'],
+        link: 'https://www.kdocs.cn/latest',
+    },
+
+    {
+        name: '起点中文网',
+        categoryId: '007',
+        kind: '小说平台',
+        icon: 'qidian',
+        desc: '网络小说的巨头',
+        tags: ['小说', '订阅'],
+        link: 'https://www.qidian.com/all/',
+    },
     // ---------- 009 论坛资讯 ----------
     {
         name: '知乎',
@@ -226,5 +255,15 @@ export const sites: Site[] = [
         desc: '即将成为时代的眼泪',
         tags: ['微博', '咨询'],
         link: 'https://weibo.com/',
+    },
+    // ---------- 010 图片绘画 ----------
+    {
+        name: '哲风壁纸',
+        categoryId: '010',
+        kind: '壁纸',
+        icon: 'img',
+        desc: '可以免费下载的壁纸社区',
+        tags: ['壁纸', '壁纸软件'],
+        link: 'https://haowallpaper.com/wallpaperForum',
     },
 ];

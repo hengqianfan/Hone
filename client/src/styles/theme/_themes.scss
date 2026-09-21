@@ -1,14 +1,6 @@
-@use './hone' as *;
-
+@use './dark' as *;
+@use './light' as *;
 $themes: (
-    light: (primary: #42b883,
-        bg-color: aliceblue,
-        text: #333333,
-        border: #e5e5e5),
-    // 默认主题
-    hone: $hone-theme ,
-    dark: (primary: #00c48c,
-        bg-color: #1e1e1e,
-        text: #eeeeee,
-        border: #333333)
+    dark: $dark-theme,
+    light: $light-theme
 );

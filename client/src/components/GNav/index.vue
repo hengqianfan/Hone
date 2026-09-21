@@ -1,5 +1,5 @@
 <template>
-    <div class="controller-all">
+    <div class="nav-all">
 
         <div class="menu">
 
@@ -90,11 +90,7 @@ const navlist: NavItem[] = [
         text: '网站',
         router: 'Sites'
     },
-    // {
-    //     icon: 'icon-nav',
-    //     text: '网站',
-    //     router: 'SitesManage'
-    // },
+
 
 
     {
@@ -114,25 +110,18 @@ const toPage = (path?: string) => {
 </script>
 
 <style lang="scss" scoped>
-.controller-all {
-
+.nav-all {
     position: fixed;
-
     top: 12px;
     left: 50%;
     transform: translateX(-50%);
-
     z-index: 9999;
-
     display: flex;
     align-items: center;
-
     padding: 10px 20px;
-
-    border: 0.3px solid rgba(255, 255, 255, 0.3);
+    border: 0.3px solid var(--nav-border-color);
     border-radius: 30px;
-
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--nav-bg);
 
     .menu {
         display: flex;
@@ -140,146 +129,128 @@ const toPage = (path?: string) => {
         align-items: center;
         justify-content: center;
         gap: 15px;
-    }
 
-    /*
-     * 一级菜单容器
-     *
-     * 这里非常重要：
-     * submenu 是 absolute，
-     * 所以需要让 menu-item 成为定位参考。
-     */
-    .menu-item {
-        position: relative;
+        .menu-item {
+            // submenu 是 absolute，
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+            .option {
+                display: flex;
+                align-items: center;
+                justify-content: center;
 
-    /*
-     * 一级按钮
-     */
-    .option {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+                width: 30px;
+                height: 30px;
+                border: 0.3px solid var(--nav-border-color);
+                border-radius: 50%;
 
-        width: 30px;
-        height: 30px;
+                background-color: var(--nav-option-bg);
 
-        border: 0.3px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
+                cursor: pointer;
 
-        background-color: rgba(255, 255, 255, 0.4);
+                i {
+                    font-size: 20px;
+                    color: var(--sub-font-color);
 
-        cursor: pointer;
+                    transition: color 0.3s ease-in-out;
+                }
 
-        i {
-            font-size: 20px;
-            color: var(--icon-color);
+                &:hover {
 
-            transition: color 0.3s ease-in-out;
-        }
-
-        &:hover {
-
-            i {
-                color: var(--primary-color);
+                    i {
+                        color: var(--main-font-color);
+                    }
+                }
             }
-        }
-    }
 
+            .submenu {
 
-    /*
-     * =========================
-     * 二级菜单
-     * =========================
-     */
+                position: absolute;
 
-    .submenu {
-
-        position: absolute;
-
-        /*
+                /*
          * 一级按钮下面
          */
-        top: calc(100% + 20px);
-        left: 50%;
+                top: calc(100% + 20px);
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-width: 110px;
+                gap: 10px;
+                padding: 15px;
+                border: 0.3px solid var(--nav-border-color);
+                border-radius: 14px;
+                background-color: var(--nav-bg);
 
-        transform: translateX(-50%);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
 
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+                box-shadow:
+                    0 8px 25px rgba(0, 0, 0, 0.15);
 
-        min-width: 110px;
-        gap: 10px;
-
-        padding: 15px;
-
-        border: 0.3px solid rgba(255, 255, 255, 0.3);
-        border-radius: 14px;
-
-        background-color: rgba(0, 0, 0, 0.65);
-
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-
-        box-shadow:
-            0 8px 25px rgba(0, 0, 0, 0.15);
-
-        /*
+                /*
          * 防止鼠标从一级菜单移动到二级菜单时
          * 因为间隔导致菜单消失
          */
-        &::before {
-            content: '';
+                &::before {
+                    content: '';
 
-            position: absolute;
+                    position: absolute;
 
-            top: -10px;
-            left: 0;
+                    top: -10px;
+                    left: 0;
 
-            width: 100%;
-            height: 10px;
+                    width: 100%;
+                    height: 10px;
+                }
+            }
+
+            .submenu-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 12px;
+                border-radius: 5px;
+                white-space: nowrap;
+                color: var(--main-font-color);
+
+                font-size: 12px;
+
+                cursor: pointer;
+
+                transition:
+                    background-color 0.2s ease,
+                    color 0.2s ease,
+                    transform 0.2s ease;
+
+
+                i {
+
+                    font-size: 14px;
+                }
+
+                &:hover {
+
+                    color: var(--main-font-color);
+
+                    background-color: rgba(255, 255, 255, 0.12);
+
+
+                    transform: scale(1.1);
+                }
+            }
+
+
         }
     }
 
-    .submenu-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 12px;
-        border-radius: 5px;
-        white-space: nowrap;
-        color: var(--text-color);
-
-        font-size: 12px;
-
-        cursor: pointer;
-
-        transition:
-            background-color 0.2s ease,
-            color 0.2s ease,
-            transform 0.2s ease;
 
 
-        i {
 
-            font-size: 14px;
-        }
-
-        &:hover {
-
-            color: var(--primary-color);
-
-            background-color: rgba(255, 255, 255, 0.12);
-
-            // transform: translateX(2px);
-            transform: scale(1.1);
-        }
-    }
 
 
     /*

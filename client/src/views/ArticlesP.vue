@@ -190,30 +190,31 @@ const emptyCells = computed(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-
+    margin-top: 10px;
     /* 卡片间距统一由变量控制 */
     --card-gap: 20px;
 
+
     .menu {
         display: flex;
-
         gap: 20px;
         padding: 10px 20px;
         position: fixed;
         z-index: 999;
-
         border-radius: 30px;
-        background-color: var(--bg-color);
+        background-color: var(--page-posts-nav-bg);
         backdrop-filter: blur(5px);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: 0.3px solid var(--page-posts-nav-border);
 
         .menu-item {
             padding: 6px 12px;
             border-radius: 15px;
             font-weight: 600;
+            font-size: 14px;
             letter-spacing: 1px;
             z-index: 10;
-            color: #666;
+            color: var(--page-posts-nav-font-color);
 
             cursor: pointer;
 
@@ -295,22 +296,14 @@ const emptyCells = computed(() => {
 
         .page-btn {
             min-width: 40px;
-
             height: 40px;
-
             padding: 0 12px;
-
             display: flex;
-
             justify-content: center;
             align-items: center;
-
             border-radius: 12px;
-
-            background-color: var(--bg-color);
-
-            color: #333;
-
+            background-color: var(--main-bg);
+            color: var(--main-font-color);
             font-weight: 600;
 
             cursor: pointer;
@@ -337,7 +330,7 @@ const emptyCells = computed(() => {
             &.active {
                 color: rgba(var(--bg-base-color-2), 1);
 
-                background: rgba(var(--bg-base-color), 0.6);
+                background: rgba(var(--base-color-02), 0.6);
             }
 
             &.disabled {

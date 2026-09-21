@@ -37,15 +37,11 @@ const siteConfig = honeConfig
     height: 100%;
     padding: 15px;
     border-radius: 20px;
-    background: rgba(20, 20, 25, 0.65);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background: var(--profile-card-bg);
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
 
-    &:hover {
-        border-color: rgba(255, 255, 255, 0.14);
-        box-shadow: 0 14px 48px rgba(0, 0, 0, 0.45);
-    }
+
 
     &__body {
         height: 100%;
@@ -55,7 +51,7 @@ const siteConfig = honeConfig
         align-items: center;
         padding: 20px 16px;
         border-radius: 14px;
-        background: rgba(0, 0, 0, 0.5);
+        background: var(--profile-card-body-bg);
         text-align: center;
         min-width: 0;
     }
@@ -68,10 +64,9 @@ const siteConfig = honeConfig
     margin-top: 8px;
     padding: 3px;
     box-sizing: border-box;
-    border: 2px solid rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--profile-card-logo-border-color);
     border-radius: 50%;
-    background-color: rgb(56, 62, 66);
-    overflow: hidden;
+    background-color: var(--profile-card-logo-bg);
     transition: transform 0.6s ease;
 
     img {
@@ -90,7 +85,7 @@ const siteConfig = honeConfig
 .name {
     margin: 10px 0;
     padding: 4px 12px;
-    color: #fff;
+    color: var(--main-font-color);
     font-size: 18px;
     font-weight: 600;
     letter-spacing: 2px;
@@ -100,7 +95,7 @@ const siteConfig = honeConfig
     margin: 0 0 10px;
     padding: 3px 8px;
     font-size: 14px;
-    color: #918989;
+    color: var(--profile-card-motto-font-color);
 }
 
 .personal-intro {
@@ -112,7 +107,7 @@ const siteConfig = honeConfig
     box-sizing: border-box;
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.3);
-    color: #bdb7b7;
+    color: var(--profile-card-intro-font-color);
     font-size: 14px;
     line-height: 20px;
     letter-spacing: 1px;
@@ -134,14 +129,14 @@ const siteConfig = honeConfig
         place-items: center;
         padding: 3px;
         border-radius: 50%;
-        background-color: aliceblue;
-        color: #111;
+        background-color: var(--profile-card-social-links-bg);
+
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
 
         i {
             font-size: 22px;
-            color: var(--icon-color, #111);
+            color: var(--profile-card-social-links-font-color);
             transition: color 0.3s ease;
         }
 
@@ -150,14 +145,11 @@ const siteConfig = honeConfig
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
 
             i {
-                color: #0056b3;
+                color: var(--profile-card-social-links-font-color-hover);
             }
         }
 
-        &:focus-visible {
-            outline: 2px solid #7c93ff;
-            outline-offset: 3px;
-        }
+
     }
 }
 </style>

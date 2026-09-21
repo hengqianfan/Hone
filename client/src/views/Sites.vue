@@ -224,10 +224,10 @@ const pickKind = (kind: string) => {
     </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 /* ============ 主题变量：写死的深色 ============ */
 .np {
-    --bg: #0b0e14;
+    --bg: var(--main-bg);
     --bg-soft: #12161f;
     --bg-raise: #171c26;
     --line: #232a36;
@@ -245,10 +245,7 @@ const pickKind = (kind: string) => {
     --side-w: 190px;
 
     min-height: 100vh;
-    background:
-        radial-gradient(900px 420px at 12% -8%, rgba(124, 140, 255, .10), transparent 65%),
-        radial-gradient(700px 360px at 92% 0%, rgba(56, 189, 248, .07), transparent 60%),
-        var(--bg);
+    background: var(--main-bg);
     color: var(--text);
     font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -271,10 +268,10 @@ const pickKind = (kind: string) => {
     max-width: var(--page-max);
     margin: 0 auto;
     padding: 18px 24px;
-    background: rgba(11, 14, 20, .82);
+
     backdrop-filter: blur(4px);
     border-bottom: 1px solid var(--line-soft);
-    background-color: var(--page-site-bg-color-top);
+    background-color: var(--page-sites-top-bg);
 }
 
 .np-brand {
@@ -350,6 +347,7 @@ const pickKind = (kind: string) => {
     display: grid;
     gap: 14px;
     border-bottom: 1px solid var(--line-soft);
+    background-color: var(--main-bg);
 }
 
 .np-search {
@@ -453,6 +451,7 @@ const pickKind = (kind: string) => {
     max-width: var(--page-max);
     margin: 0 auto;
     padding: 26px 24px 72px;
+    background-color: var(--main-bg);
 }
 
 /* 一级分类：竖向导航 */

@@ -154,6 +154,7 @@ watch(() => [props.autoplay, props.interval], start)
     --panel-pad-x: 18px;
     --panel-pad-y: 16px;
 
+
     position: relative;
     width: 100%;
     height: 100%;
@@ -169,7 +170,7 @@ watch(() => [props.autoplay, props.interval], start)
     user-select: none;
     /* 与 Home.vue 面板一致的圆角与底色，不再自建深色块 */
     border-radius: 20px;
-    background-color: rgba(0, 0, 0, 0.45);
+    background-color: var(--cd-bg-in);
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -182,7 +183,6 @@ watch(() => [props.autoplay, props.interval], start)
 .cd-name {
     /* margin: 0 0 12px; */
     margin: 12px auto;
-
     font-size: 20px;
     font-weight: 600;
     letter-spacing: 0.5px;

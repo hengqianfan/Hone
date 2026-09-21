@@ -7,13 +7,13 @@
                 <ProfileCard class="info" />
 
                 <!-- 弹幕墙 -->
-                <div class="showcase glass-panel">
+                <div class="showcase ">
                     <FloatWall />
                 </div>
             </section>
 
             <!-- ============ 第二行：倒计时（单列铺满整行） ============ -->
-            <section class="update glass-panel">
+            <section class="update ">
                 <div class="update__countdown">
                     <Countdown :list="countdowns" :limit="10" :interval="4000" />
                 </div>
@@ -48,18 +48,6 @@ $col-right: minmax(0, $info-max * $hero-ratio);
 /* .content 的最大宽度 = 两列 + gap，让两行都被同一宽度约束 */
 $content-max: $info-max + $info-max * $hero-ratio + $gap; // 1066px
 
-@mixin glass-panel {
-    border-radius: $radius-lg;
-    background: rgba(20, 20, 25, 0.65);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-
-    &:hover {
-        border-color: rgba(255, 255, 255, 0.14);
-        box-shadow: 0 14px 48px rgba(0, 0, 0, 0.45);
-    }
-}
 
 $bp-md: 1200px;
 $bp-sm: 992px;
@@ -72,7 +60,7 @@ $bp-xs: 768px;
     width: 100%;
     min-height: 50vh;
     box-sizing: border-box;
-    padding: 20px;
+    padding: 10px;
     display: grid;
     place-content: safe center;
 }
@@ -113,7 +101,8 @@ $bp-xs: 768px;
     min-width: 0;
     height: 100%;
     /* 撑满 hero 行高 */
-    @include glass-panel;
+    background-color: var(--danmaku-wall-bg);
+    border-radius: 20px;
 
     >* {
         width: 100%;
@@ -129,7 +118,9 @@ $bp-xs: 768px;
     box-sizing: border-box;
     padding: $panel-pad;
     min-width: 0;
-    @include glass-panel;
+
+    background-color: var(--cd-bg);
+    border-radius: 20px;
 
     &__countdown {
         min-width: 0;

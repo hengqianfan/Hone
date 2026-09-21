@@ -1,7 +1,7 @@
 <template>
     <div class="boke-all">
         <VideoBackground />
-        <BokeNav />
+        <GNav />
         <div class="boke-main">
             <router-view></router-view>
 
@@ -13,7 +13,7 @@
 
 <script lang="ts" setup>
 import { onMounted } from 'vue'
-import BokeNav from '@/components/BokeNav/index.vue'
+import GNav from '@/components/GNav/index.vue'
 import myFooter from '@/components/Footer/index.vue'
 import VideoBackground from '@/components/Background/index.vue'
 
@@ -34,7 +34,7 @@ onMounted(() => {
     --transition-fast: all 0.3s ease;
     --transition-slow: all 0.8s ease;
     padding: 0px 50px;
-    padding-top: 80px;
+    padding-top: 70px;
 
     .boke-main {
         width: 100%;
@@ -48,7 +48,7 @@ onMounted(() => {
 @media (max-width: 768px) {
     .boke-all {
         padding: 20px;
-        padding-top: 80px;
+        padding-top: 70px;
 
     }
 }

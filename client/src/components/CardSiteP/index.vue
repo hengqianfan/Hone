@@ -244,6 +244,7 @@ watch(
     color: var(--card-text);
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     min-height: calc(13px * 1.55 * 2);

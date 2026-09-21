@@ -31,8 +31,11 @@
             </div>
 
             <p class="header-intro">
-                人的记忆由不同的瞬间组成，常态是逐渐模糊，然后靠回忆维持，
-                可是，清晰记录下来的喜与悲，未尝不算是一种更好的选择。
+                人的记忆由不同的瞬间组成，常态是逐渐模糊，然后靠回忆维持。
+
+                <br>
+
+                但把喜与悲清晰记录下来，这或许是一种更好的选择。
             </p>
 
             <!-- ============ 筛选器 ============ -->
@@ -109,7 +112,7 @@
                                         </span>
                                     </div>
                                     <p class="text-body">{{ item.text }}</p>
-                                    <span class="read-more">阅读全文</span>
+                                    <span class="read-more">💬 阅读全文</span>
                                 </div>
                             </template>
                         </div>
@@ -169,7 +172,7 @@
                     <div class="viewer-foot">
                         <div v-if="viewerImages.length" class="viewer-desc">{{ viewerCurrent?.text }}</div>
                         <div class="viewer-tip">
-                            {{ viewerImages.length ? '滚轮缩放 · 放大后可拖拽 · Esc 关闭' : '按 Esc 关闭' }}
+                            {{ viewerImages.length ? 'Esc 关闭 · 滚轮放大缩小 · 放大可拖拽' : '按 Esc 关闭' }}
                         </div>
                     </div>
                 </div>
@@ -196,6 +199,7 @@ const { momentsList } = storeToRefs(momentsStore)
 
 function parseDate(id: string) {
     const digits = String(id ?? '').replace(/\D/g, '')
+
     if (digits.length < 8) return { year: '', month: '', day: '', key: '', ts: 0, seq: '' }
 
     const year = digits.slice(0, 4)
@@ -461,7 +465,7 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-
+    margin-top: 5px;
 
 }
 
@@ -479,7 +483,8 @@ onMounted(() => {
     gap: 18px;
     padding: 28px 24px;
     border-radius: 20px;
-    background-color: var(--bg-color);
+    background-color: var(--main-bg);
+    border: 0.3px solid var(--page-moments-border);
     box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
 }
 
@@ -488,6 +493,8 @@ onMounted(() => {
     font-weight: bold;
     line-height: 1.1;
     letter-spacing: 0.5px;
+    color: var(--main-font-color);
+
 }
 
 .header-stats {
@@ -508,14 +515,12 @@ onMounted(() => {
     gap: 10px;
     padding: 12px 16px;
     border-radius: 14px;
-    background: var(--bg-color);
+    background: var(--main-bg);
+    color: var(--main-font-color);
     transition: background 0.25s ease, transform 0.25s ease;
 }
 
-.stat-item:hover {
-    transform: translateY(-2px);
-    background: rgba(128, 128, 128, 0.14);
-}
+
 
 .stat-icon {
     display: flex;
@@ -555,7 +560,7 @@ onMounted(() => {
     // color: #888;
     padding: 10px;
     border-radius: 10px;
-    // background: var(--bg-color);
+    color: var(--main-font-color);
 
 }
 
@@ -571,7 +576,7 @@ onMounted(() => {
     gap: 10px;
     padding: 14px 18px;
     border-radius: 15px;
-    background-color: var(--bg-color);
+    // background-color: var(--main-bg);
     box-sizing: border-box;
 }
 
@@ -586,6 +591,7 @@ onMounted(() => {
     font-size: 13px;
     opacity: 0.7;
     margin-right: 4px;
+    color: var(--main-font-color)
 }
 
 .chip {
@@ -594,9 +600,11 @@ onMounted(() => {
     border-radius: 20px;
     font-size: 13px;
     color: inherit;
-    background: rgba(128, 128, 128, 0.14);
     cursor: pointer;
+    background-color: var(--page-moments-chip-bg);
+    color: var(--page-moments-chip-font-color);
     transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+
 }
 
 .chip:hover:not(:disabled) {
@@ -604,15 +612,17 @@ onMounted(() => {
 }
 
 .chip.active {
-    background-color: var(--primary);
-    color: #fff;
+
+    font-weight: 600;
+    background-color: var(--page-moments-chip-bg-active);
+    border: 0.3px solid var(--page-moments-chip-border);
 }
 
 .chip:disabled {
-    opacity: 0.35;
+    opacity: 0.2;
     cursor: not-allowed;
     transform: none;
-    background: rgba(128, 128, 128, 0.08);
+
 }
 
 /* =========================
@@ -630,7 +640,7 @@ onMounted(() => {
     content: '';
     position: absolute;
     left: 50%;
-    top: 8px;
+    top: 20px;
     bottom: 8px;
     width: 2px;
     transform: translateX(-50%);
@@ -650,32 +660,28 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    margin: 6px auto 16px;
-    padding: 5px 16px;
+    margin: 20px auto;
+    padding: 10px 16px;
     width: fit-content;
     border-radius: 20px;
-    background-color: var(--bg-color);
+    background-color: var(--main-bg);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+
 }
 
-.group-head::before {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    border-radius: 24px;
-    background: rgba(128, 128, 128, 0.06);
-    z-index: -1;
-}
 
 .group-title {
     font-size: 15px;
     font-weight: 700;
     letter-spacing: 0.4px;
+
+    color: var(--main-font-color);
 }
 
 .group-count {
     font-size: 12px;
-    opacity: 0.55;
+    opacity: 0.5;
+    color: var(--main-font-color);
 }
 
 .timeline-items {
@@ -699,8 +705,8 @@ onMounted(() => {
     height: 10px;
     transform: translateX(-50%);
     border-radius: 50%;
-    background-color: var(--primary);
-    box-shadow: 0 0 0 4px var(--bg-color), 0 0 0 6px rgba(128, 128, 128, 0.15);
+    background-color: var(--page-moments-chip-bg-active);
+    border: 0.3px solid var(--page-moments-border);
     z-index: 3;
 }
 
@@ -724,10 +730,11 @@ onMounted(() => {
     max-width: 460px;
     overflow: hidden;
     border-radius: 16px;
-    background-color: var(--bg-color);
+    background-color: var(--page-moments-card-text-only-bg);
     box-shadow: 0 2px 14px rgba(0, 0, 0, 0.08);
     cursor: pointer;
     outline: none;
+    padding: 10px;
     transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
 }
 
@@ -743,6 +750,7 @@ onMounted(() => {
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
+    border-radius: 10px;
 }
 
 .cover img {
@@ -798,13 +806,14 @@ onMounted(() => {
     right: 0;
     bottom: 0;
     z-index: 2;
-    padding: 40px 14px 12px;
+    padding: 40px 20px 20px;
     color: #fff;
     background: linear-gradient(to bottom,
             transparent,
             rgba(0, 0, 0, 0.55) 40%,
             rgba(0, 0, 0, 0.85));
     pointer-events: none;
+    // background-color: rebeccapurple;
 }
 
 .top,
@@ -851,11 +860,15 @@ onMounted(() => {
     position: relative;
     padding: 18px 20px 20px;
     overflow: hidden;
+    background-color: var(--page-moments-card-text-only-bg);
+    border-radius: 10px;
+
 }
 
 .text-meta {
     margin-bottom: 10px;
     opacity: 0.65;
+    color: var(--main-font-color);
 }
 
 .text-body {
@@ -867,10 +880,11 @@ onMounted(() => {
     display: -webkit-box;
     -webkit-line-clamp: 6;
     line-clamp: 6;
-
     -webkit-box-orient: vertical;
     overflow: hidden;
     max-height: calc(1.85em * 6);
+    color: var(--page-moments-card-text-only-font-color);
+
 }
 
 .text-only::after {
@@ -890,7 +904,9 @@ onMounted(() => {
     display: inline-block;
     margin-top: 12px;
     font-size: 12px;
-    color: var(--primary);
+    color: var(--page-moments-card-text-only-more-color);
+    font-weight: 600;
+
     opacity: 0;
     transform: translateY(4px);
     transition: opacity 0.25s ease, transform 0.25s ease;

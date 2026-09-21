@@ -143,7 +143,7 @@ const onIconError = (e: Event) => {
 
     padding: 10px;
     border-radius: var(--post-radius);
-    background-color: var(--card-post-bg-color);
+    background-color: var(--card-post-bg);
     backdrop-filter: blur(10px);
     box-shadow:
         0 1px 2px rgba(0, 0, 0, 0.06),
