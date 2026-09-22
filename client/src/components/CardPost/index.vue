@@ -43,7 +43,7 @@
 <script lang="ts" setup>
 import { ref, watch, computed } from 'vue'
 import { formatDate } from '@/utils/textFormat'
-import { getIconURL, getImgURL } from '@/utils/link'
+import { getImgURL } from '@/utils/getImgURL'
 
 interface Post {
     slug: string
@@ -64,8 +64,8 @@ const DEFAULT_COVER = './banners/banner01.png'
 const DEFAULT_ICON = './favicon.ico'
 
 /** 当前实际渲染的图片地址 */
-const coverSrc = ref(props.post.cover ? getImgURL(props.post.cover) : DEFAULT_COVER)
-const iconSrc = ref(props.post.icon ? getIconURL(props.post.icon) : DEFAULT_ICON)
+const coverSrc = ref(props.post.cover ? getImgURL(props.post.cover, 'cover') : DEFAULT_COVER)
+const iconSrc = ref(props.post.icon ? getImgURL(props.post.cover, 'icon') : DEFAULT_ICON)
 
 /** 是否已落到默认图，避免默认图再失败时无限循环 */
 const coverFallbackUsed = ref(false)
@@ -83,14 +83,14 @@ watch(
     () => props.post.cover,
     (val) => {
         coverFallbackUsed.value = false
-        coverSrc.value = val ? getImgURL(val) : DEFAULT_COVER
+        coverSrc.value = val ? getImgURL(val, 'cover') : DEFAULT_COVER
     }
 )
 watch(
     () => props.post.icon,
     (val) => {
         iconFallbackUsed.value = false
-        iconSrc.value = val ? getIconURL(val) : DEFAULT_ICON
+        iconSrc.value = val ? getImgURL(val, 'icon') : DEFAULT_ICON
     }
 )
 

@@ -77,7 +77,7 @@ import { useRoute, onBeforeRouteUpdate } from 'vue-router'
 import { usePostsStore } from '@/stores/posts'
 import { setDocumentTitle } from '@/utils/setDocumentTitle'
 import { formatDate2 } from '@/utils/textFormat'
-import { getImgURL } from '@/utils/link'
+import { getImgURL } from '@/utils/getImgURL'
 
 import MarkdownRenderer from '@/components/RenderMarkdown/index.vue'
 
@@ -99,7 +99,7 @@ const tocList = computed<TocItem[]>(() => post.value?.toc ?? [])
 const heroStyle = computed(() => {
     const cover = (post.value as any)?.cover ?? (post.value as any)?.coverUrl
     if (cover) {
-        const res = getImgURL(cover)
+        const res = getImgURL(cover, 'cover')
         return {
             backgroundImage: `linear-gradient(135deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.72)), url(${res})`,
         }

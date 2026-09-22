@@ -83,7 +83,8 @@
                             @keydown.enter="openViewer(item)" @keydown.space.prevent="openViewer(item)">
                             <template v-if="hasImages(item)">
                                 <div class="cover">
-                                    <img :src="getImgURL(item.images![0])" :alt="item.text" loading="lazy">
+                                    <img :src="getImgURL(item.images[0])" :alt="item.text" loading="lazy"
+                                        @error="onImgError">
                                     <div v-if="item.images!.length > 1" class="badge badge-tag">多图</div>
                                     <div v-if="item.images!.length > 1" class="badge badge-count">
                                         {{ item.images!.length }}
@@ -185,11 +186,13 @@
 import { computed, ref, watch, onBeforeUnmount, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMomentsStore } from '@/stores/moments'
-import { getImgURL } from '@/utils/link'
+import { getImgURL } from '@/utils/getImgURL'
 import type { Moment } from '@/types/moment'
 
 const momentsStore = useMomentsStore()
 const { momentsList } = storeToRefs(momentsStore)
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -297,6 +300,30 @@ function selectMonth(m: string) {
     if (!monthHasData(m)) return
     activeMonth.value = m
 }
+/** 默认占位图（放到 public / assets 下，按你的项目路径调整） */
+const DEFAULT_COVER = './banners/banner01.png'
+// 或者用字符串常量： const DEFAULT_COVER = '/images/default-cover.png'
+
+/**
+ * 封面加载失败：
+ * 1. 第一次失败 -> 替换为默认图，并在元素上打标记，防止默认图再失败时死循环
+ * 2. 默认图也失败 -> 隐藏图片，避免出现浏览器"破图"图标
+ */
+const onImgError = (e: Event) => {
+    const img = e.target as HTMLImageElement
+    if (!img) return
+
+    // 已经用过默认图，说明默认图也挂了 -> 直接隐藏
+    if (img.dataset.fallback === '1') {
+        img.style.visibility = 'hidden'
+        img.removeAttribute('src') // 避免部分浏览器继续重试
+        return
+    }
+
+    // 首次失败：切到默认图并打标记
+    img.dataset.fallback = '1'
+    img.src = DEFAULT_COVER
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -313,6 +340,10 @@ const viewerImgUrl = computed(() => {
     const url = viewerImages.value[viewerIndex.value]
     return url ? getImgURL(url) : ''
 })
+
+
+
+
 
 const viewerOrientation = ref<'landscape' | 'portrait' | 'square'>('landscape')
 
@@ -700,13 +731,13 @@ onMounted(() => {
 .dot {
     position: absolute;
     left: 50%;
-    top: 20px;
+    top: 50%;
     width: 10px;
     height: 10px;
     transform: translateX(-50%);
     border-radius: 50%;
     background-color: var(--page-moments-chip-bg-active);
-    border: 0.3px solid var(--page-moments-border);
+    border: 2px solid var(--page-moments-timeline-dot-border);
     z-index: 3;
 }
 
@@ -1175,6 +1206,7 @@ onMounted(() => {
     overflow-y: auto;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 
@@ -1285,6 +1317,7 @@ onMounted(() => {
     .text-body {
         font-size: 13px;
         -webkit-line-clamp: 5;
+        line-clamp: 5;
         max-height: calc(1.8em * 5);
     }
 
@@ -1332,6 +1365,7 @@ onMounted(() => {
         font-size: 11px;
         line-height: 1.4;
         -webkit-line-clamp: 1;
+        line-clamp: 1;
     }
 
     .badge {

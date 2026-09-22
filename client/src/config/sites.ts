@@ -109,6 +109,16 @@ export const sites: Site[] = [
         tags: ['大模型', 'ai'],
         link: 'https://www.workbuddy.ai/app',
     },
+
+    {
+        name: 'Cursor',
+        categoryId: '002',
+        kind: 'AI IDE',
+        icon: 'cursor',
+        desc: '比较前期的ai IDE',
+        tags: ['ai', 'IDE'],
+        link: 'https://cursor.com/',
+    },
     // ---------- 003 视频音乐 ----------
     {
         name: 'Bilibili',
@@ -148,6 +158,15 @@ export const sites: Site[] = [
         desc: '划时代的产物，潘多拉的魔盒',
         tags: ['字节', '短视频'],
         link: 'https://www.douyin.com/jingxuan',
+    },
+
+    {
+        name: '落雪音乐音源',
+        categoryId: '003',
+        kind: '音乐',
+        desc: 'Github上的落雪音乐音源',
+        tags: ['音源', '落雪音乐', '音乐'],
+        link: 'https://github.com/pdone/lx-music-source',
     },
     // ---------- 004 游戏世界 ----------
     {
