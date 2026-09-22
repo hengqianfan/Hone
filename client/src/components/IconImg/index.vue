@@ -26,7 +26,7 @@ const props = withDefaults(
 const getRemoteUrl = (name?: string) => {
     if (!name) return defaultIcon
 
-    return `${honeConfig.iconServerIP}${name}.png`
+    return `${honeConfig.imgServerBase}${name}.png`
 }
 
 const currentSrc = ref(getRemoteUrl(props.name))
