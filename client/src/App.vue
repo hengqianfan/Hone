@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import Controller from './components/Controller/index.vue'
-
 import LayoutBoke from './layouts/boke.vue'
-import BokeNav from './components/BokeNav/index.vue'
+
 import { useThemeStore } from '@/stores/theme'
 import PageTransition from '@/components/PageTransition/index.vue'
 import { registerOverlay } from '@/router'
