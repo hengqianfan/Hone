@@ -7,10 +7,8 @@
     <div v-if="post" class="post-detail">
         <!-- ===================== 封面头部 ===================== -->
         <header class="hero" :style="heroStyle">
-            <!-- 封面遮罩，保证文字可读性 -->
-            <div class="hero-mask"></div>
 
-            <!-- 顶部悬浮信息卡 -->
+
             <div class="hero-inner">
                 <div class="hero-meta-top">
                     <span v-if="post.series" class="hero-series-badge">
@@ -22,7 +20,6 @@
                     {{ post.title }}
                 </h1>
 
-                <!-- 日期 + 标签 -->
                 <div class="hero-bottom">
                     <div class="hero-left">
                         <div class="hero-date">
@@ -37,7 +34,6 @@
                     </div>
                 </div>
 
-                <!-- 同步信息：单独一行，位于标签之下 -->
                 <div v-if="post.sync" class="hero-sync">
                     <div class="sync-items">
                         <div v-for="(_, n) in post.sync" :key="n" class="sync-item">
@@ -51,23 +47,26 @@
 
         <div class="content">
             <MarkdownRenderer :html="post.content" />
-
-            <aside v-if="post.toc?.length" class="toc">
-                <div class="toc-title">内容速览</div>
-
-                <div class="toc-list">
-                    <div v-for="item in post.toc" :key="item.id" :class="[
-                        'toc-item',
-                        'level-' + item.level,
-                        { 'is-active': activeTocId === item.id },
-                    ]">
-                        <a :href="'#' + item.id" :title="item.text" @click.prevent="scrollToHeading(item.id)">{{
-                            item.text }}</a>
-                    </div>
-                </div>
-            </aside>
         </div>
     </div>
+
+    <!-- ★ 关键：TOC 移出 .post-detail，摆脱 backdrop-filter 包含块 + overflow 裁剪 -->
+    <transition name="toc-fade">
+        <aside v-if="post && tocList.length" class="toc">
+            <div class="toc-title">内容速览</div>
+
+            <div class="toc-list">
+                <div v-for="item in tocList" :key="item.id" :class="[
+                    'toc-item',
+                    'level-' + item.level,
+                    { 'is-active': activeTocId === item.id },
+                ]">
+                    <a :href="'#' + item.id" :title="item.text" @click.prevent="scrollToHeading(item.id)">{{
+                        item.text }}</a>
+                </div>
+            </div>
+        </aside>
+    </transition>
 </template>
 
 <script setup lang="ts">
@@ -94,7 +93,7 @@ const post = computed(() => postStore.getPost(route.params.slug as string))
 const tocList = computed<TocItem[]>(() => post.value?.toc ?? [])
 
 /* =========================
-   封面样式：优先使用文章封面，否则用暗色渐变兜底
+   封面样式
 ========================= */
 const heroStyle = computed(() => {
     const cover = (post.value as any)?.cover ?? (post.value as any)?.coverUrl
@@ -106,12 +105,12 @@ const heroStyle = computed(() => {
     }
     return {
         backgroundImage:
-            'linear-gradient(135deg, rgba(38, 38, 38, 0.9) 0%, rgba(22, 22, 22, 0.95) 50%, rgba(10, 10, 10, 1) 100%)',
+            'transparent',
     }
 })
 
 /* =========================
-   阅读进度（rAF + 节流）
+   阅读进度
 ========================= */
 const progress = ref(0)
 const activeTocId = ref('')
@@ -132,7 +131,6 @@ const calcProgress = () => {
     progress.value = Math.round(Math.min(100, Math.max(0, raw)) * 10) / 10
 }
 
-/** 用 rAF 合并高频 scroll 事件，避免重复计算与重排 */
 const onScroll = () => {
     if (ticking) return
     ticking = true
@@ -148,8 +146,9 @@ const onScroll = () => {
 ========================= */
 const updateActiveToc = () => {
     if (!tocList.value.length) return
-    // @ts-ignore
-    let current = tocList.value[0].id
+    const firstItem = tocList.value[0]
+    if (!firstItem) return
+    let current = firstItem.id
     for (const item of tocList.value) {
         const el = document.getElementById(item.id)
         if (!el) continue
@@ -162,7 +161,6 @@ const updateActiveToc = () => {
     activeTocId.value = current
 }
 
-/** 平滑滚动到标题，并同步更新 hash（不触发整页跳转） */
 const scrollToHeading = (id: string) => {
     const el = document.getElementById(id)
     if (!el) return
@@ -197,29 +195,28 @@ onBeforeRouteUpdate(async (to) => {
     progress.value = 0
     activeTocId.value = ''
     calcProgress()
+    updateActiveToc()
 })
 </script>
 
 <style scoped lang="scss">
 /* =========================
-   黑色磨砂玻璃设计变量
+   设计变量
 ========================= */
-$glass-bg: rgba(22, 22, 22, 0.55); // 主玻璃底色（半透明黑）
-$glass-bg-soft: rgba(32, 32, 32, 0.45); // 次级玻璃（卡片/标签）
-$glass-bg-deep: rgba(10, 10, 10, 0.6); // 更深玻璃（徽章/凹槽）
-$glass-border: rgba(255, 255, 255, 0.08); // 极细玻璃边界
-$glass-border-strong: rgba(255, 255, 255, 0.16); // hover 时的边界高光
-$glass-highlight: rgba(255, 255, 255, 0.12); // 顶部内高光
-$glass-blur: 18px; // 模糊强度
+$glass-bg: rgba(22, 22, 22, 0.55);
+$glass-bg-soft: rgba(32, 32, 32, 0.45);
+$glass-bg-deep: rgba(10, 10, 10, 0.6);
+$glass-border: rgba(255, 255, 255, 0.08);
+$glass-border-strong: rgba(255, 255, 255, 0.16);
+$glass-highlight: rgba(255, 255, 255, 0.12);
+$glass-blur: 18px;
 
-$neo-light: #2b2b2b; // 保留少量外阴影用色
-$neo-dark: #050505;
 $neo-text: #d4d4d4;
 $neo-text-dim: #8a8a8a;
 $neo-accent: #e0e0e0;
 
 /* =========================
-   顶部沉浸式进度条（磨砂玻璃质感）
+   顶部进度条
 ========================= */
 .progress-bar {
     position: fixed;
@@ -275,7 +272,7 @@ $neo-accent: #e0e0e0;
 }
 
 /* =========================
-   页面布局（磨砂玻璃主面板）
+   主面板
 ========================= */
 .post-detail {
     width: 900px;
@@ -283,6 +280,7 @@ $neo-accent: #e0e0e0;
     margin: 0 auto;
     padding-bottom: 200px;
     border-radius: 30px;
+    /* 保留圆角裁剪主面板自身的视觉效果 */
     overflow: hidden;
     background: $glass-bg;
     backdrop-filter: blur($glass-blur) saturate(140%);
@@ -305,23 +303,10 @@ $neo-accent: #e0e0e0;
     background-position: center;
     background-repeat: no-repeat;
     overflow: hidden;
-    /* 封面与下方正文磨砂层的交界阴影，制造玻璃叠层关系 */
-    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06),
-        inset 0 0 70px rgba(0, 0, 0, 0.85);
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+        inset 0 0 36px rgba(0, 0, 0, 0.35);
 
-    .hero-mask {
-        position: absolute;
-        inset: 0;
-        background:
-            radial-gradient(120% 90% at 50% 0%,
-                rgba(255, 255, 255, 0.07) 0%,
-                rgba(0, 0, 0, 0) 60%),
-            linear-gradient(180deg,
-                rgba(0, 0, 0, 0.1) 20%,
-                rgba(0, 0, 0, 0.65) 78%,
-                rgba(0, 0, 0, 0.92) 100%);
-        pointer-events: none;
-    }
+
 
     .hero-inner {
         position: relative;
@@ -338,7 +323,6 @@ $neo-accent: #e0e0e0;
         justify-content: flex-start;
     }
 
-    /* 系列标签：磨砂胶囊 */
     .hero-series-badge {
         font-size: 12px;
         letter-spacing: 1px;
@@ -358,8 +342,8 @@ $neo-accent: #e0e0e0;
         line-height: 1.25;
         font-weight: 700;
         letter-spacing: 2px;
-        color: #f5f5f5;
-        text-shadow: 0 4px 24px rgba(0, 0, 0, 0.9);
+        color: rgb(245, 245, 245);
+
         position: relative;
         padding-bottom: 14px;
         word-break: break-word;
@@ -372,7 +356,6 @@ $neo-accent: #e0e0e0;
             width: 96px;
             height: 2px;
             border-radius: 999px;
-            /* 玻璃高光条：上亮下暗 */
             background: linear-gradient(90deg,
                     rgba(255, 255, 255, 0.5),
                     rgba(255, 255, 255, 0.12),
@@ -381,7 +364,6 @@ $neo-accent: #e0e0e0;
         }
     }
 
-    /* 日期 + 标签区：只保留左侧内容，不再与同步同行 */
     .hero-bottom {
         display: flex;
         align-items: flex-end;
@@ -408,7 +390,6 @@ $neo-accent: #e0e0e0;
         flex-wrap: wrap;
         gap: 10px;
 
-        /* 标签：磨砂小胶囊 */
         .hero-tag {
             font-size: 12px;
             padding: 6px 14px;
@@ -432,7 +413,6 @@ $neo-accent: #e0e0e0;
         }
     }
 
-    /* 同步信息：独立成行，位于标签之下 */
     .hero-sync {
         display: flex;
         flex-direction: column;
@@ -454,7 +434,6 @@ $neo-accent: #e0e0e0;
             gap: 12px;
             padding-right: 10px;
 
-            /* 同步图标：磨砂圆形按钮 */
             .sync-item i {
                 display: inline-flex;
                 align-items: center;
@@ -489,97 +468,112 @@ $neo-accent: #e0e0e0;
 .content {
     position: relative;
     padding: 28px 30px 10px;
+}
 
-    /* TOC：右侧悬浮磨砂面板 */
-    .toc {
-        width: 220px;
-        max-width: 220px;
-        border-radius: 20px;
-        position: fixed;
-        top: 80px;
-        padding: 20px;
-        left: calc(50% + 450px + 20px);
-        font-size: 12px;
-        display: flex;
-        flex-direction: column;
-        background: $glass-bg;
-        backdrop-filter: blur($glass-blur) saturate(140%);
-        -webkit-backdrop-filter: blur($glass-blur) saturate(140%);
-        border: 1px solid $glass-border;
-        box-shadow:
-            0 16px 40px rgba(0, 0, 0, 0.55),
-            inset 0 1px 0 $glass-highlight;
-        max-height: calc(100vh - 100px);
+/* =========================
+   TOC（独立 fixed，脱离 backdrop-filter 祖先）
+========================= */
+.toc {
+    position: fixed;
+    top: 80px;
+    /* 900 宽正文右边缘 + 20px 间距 */
+    left: calc(50% + 450px + 20px);
+    width: 220px;
+    max-width: 220px;
+    max-height: calc(100vh - 100px);
+    padding: 20px;
+    border-radius: 20px;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    background: $glass-bg;
+    backdrop-filter: blur($glass-blur) saturate(140%);
+    -webkit-backdrop-filter: blur($glass-blur) saturate(140%);
+    border: 1px solid $glass-border;
+    box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 $glass-highlight;
+    z-index: 100;
 
-        .toc-title {
+    .toc-title {
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 10px;
+        color: $neo-text;
+        flex-shrink: 0;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .toc-list {
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 20px;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .toc-item {
+        margin: 8px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 2px 0;
+
+        a {
+            color: $neo-text-dim;
+            text-decoration: none;
+            transition: color 0.2s ease;
+            display: block;
+        }
+
+        a:hover {
+            color: $neo-accent;
+        }
+
+        &.is-active a {
+            color: #ffffff;
             font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 10px;
-            color: $neo-text;
-            flex-shrink: 0;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
         }
+    }
 
-        .toc-list {
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-bottom: 20px;
-            scrollbar-width: none;
+    .level-2 {
+        padding-left: 0;
+        font-size: 13px;
+        font-weight: 500;
+    }
 
-            &::-webkit-scrollbar {
-                display: none;
-            }
-        }
+    .level-3 {
+        padding-left: 12px;
+    }
 
-        .toc-item {
-            margin: 8px 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding: 2px 0;
+    .level-4 {
+        padding-left: 24px;
+    }
 
-            a {
-                color: $neo-text-dim;
-                text-decoration: none;
-                transition: color 0.2s ease;
-                display: block;
-            }
-
-            a:hover {
-                color: $neo-accent;
-            }
-
-            /* 激活态：提亮文字 + 柔光，保持黑白灰纯粹性 */
-            &.is-active a {
-                color: #ffffff;
-                font-weight: 600;
-                text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
-            }
-        }
-
-        .level-2 {
-            padding-left: 0;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .level-3 {
-            padding-left: 12px;
-        }
-
-        .level-4 {
-            padding-left: 24px;
-        }
-
-        .level-5 {
-            padding-left: 36px;
-        }
+    .level-5 {
+        padding-left: 36px;
     }
 }
 
-/* 屏幕空间不足时隐藏 TOC */
+/* TOC 淡入淡出 */
+.toc-fade-enter-active,
+.toc-fade-leave-active {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.toc-fade-enter-from,
+.toc-fade-leave-to {
+    opacity: 0;
+    transform: translateX(12px);
+}
+
+/* 屏幕空间不足时隐藏 TOC（作用于外层，不受 .post-detail 影响） */
 @media (max-width: 1400px) {
-    .post-detail .content .toc {
+    .toc {
         display: none;
     }
 }

@@ -35,7 +35,7 @@
 
     h2 {
         font-size: 22px;
-        text-decoration: underline #835f5f 1.5px;
+        text-decoration: underline var(--main-font-color) 1.5px;
         text-underline-offset: 6px;
 
     }
@@ -67,7 +67,7 @@
         // margin: 16px 0;
         padding: 15px;
         background: rgba(var(--bg-base-color), 0.8);
-        color: #555;
+        color: #999;
         border-radius: 6px;
         font-size: 14px;
     }

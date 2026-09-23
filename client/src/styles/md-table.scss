@@ -9,23 +9,25 @@
 
     tr {
         border-top: 1px solid #dcdfe6;
-
-
+        background-color: var(--md-table-odd-bg);
     }
 
     tr:nth-child(even) {
         background: #f6f8fa;
+        background-color: var(--md-table-even-bg);
     }
 
     th,
     td {
         padding: 10px 16px;
         border: 1px solid #dcdfe6;
+
     }
 
     th {
         font-weight: 600;
-        background: #f6f8fa;
+        background-color: var(--md-table-title-bg);
+
     }
 
     .table-wrapper {

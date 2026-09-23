@@ -118,15 +118,17 @@ $bp-xs: 768px;
     box-sizing: border-box;
     padding: $panel-pad;
     min-width: 0;
-
     background-color: var(--cd-bg);
     border-radius: 20px;
+    min-height: 36vh;
 
     &__countdown {
         min-width: 0;
         width: 100%;
+        height: 100%;
         display: flex;
         justify-content: center;
+
 
         /* 让 Countdown 组件横向撑满 */
         >* {
