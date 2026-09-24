@@ -61,14 +61,7 @@ const router = createRouter({
     },
 
 
-    {
-      path: '/settings',
-      component: () => import('@/views/Setting.vue'),
-      name: 'Settings',
-      meta: {
-        title: '站点列表',
-      },
-    },
+
 
     {
       path: '/post/:slug',

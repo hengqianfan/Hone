@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import Controller from './components/Controller/index.vue'
 import LayoutBoke from './layouts/boke.vue'
 
 import { useThemeStore } from '@/stores/theme'
@@ -47,11 +46,7 @@ onMounted(() => {
   <div id="app">
     <PageTransition ref="transitionRef" />
     <LayoutBoke />
-    <!-- <Controller /> -->
-    <!-- <Setting /> -->
 
-
-    <!-- <router-view /> -->
   </div>
 </template>
 

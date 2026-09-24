@@ -93,11 +93,6 @@ const navlist: NavItem[] = [
 
 
 
-    {
-        icon: 'icon-settings',
-        text: '设置',
-        router: 'Settings'
-    }
 ]
 
 const toPage = (path?: string) => {
