@@ -10,10 +10,11 @@ $light-theme: (
     // 主标题：深灰，不用纯黑
     sub-font-color: #5b6169,
     // 副文字：中灰，比黑更柔和
-    nav-bg: rgba(255, 255, 255, 0.5),
-    nav-border-color: rgba(31, 35, 41, 0.08),
-    nav-option-bg: rgba(255, 255, 255, 0.75),
-    nav-option-font-color: #1f2329,
+    nav-bg: rgb(200, 200, 200),
+    nav-border-color: white,
+    nav-option-bg: rgb(45, 74, 107),
+    nav-option-font-color: rgb(200, 200, 200),
+    nav-option-font-color-hover: white,
     //
     profile-card-bg: rgba(240, 248, 255, 0.5),
     profile-card-body-bg: rgba(240, 248, 255, 1),

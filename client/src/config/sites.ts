@@ -59,6 +59,16 @@ export const sites: Site[] = [
         tags: ['开源', '日历'],
         link: 'https://vcalendar.io/',
     },
+
+    {
+        name: 'V2EX',
+        categoryId: '001',
+        kind: '社区论坛',
+        icon: 'v2ex',
+        desc: '一个小论坛',
+        tags: ['论坛'],
+        link: 'https://edge.v2ex.com/',
+    },
     // ---------- 002 人工智能 ----------
     {
         name: 'CodeBuddy',
@@ -168,11 +178,20 @@ export const sites: Site[] = [
         tags: ['音源', '落雪音乐', '音乐'],
         link: 'https://github.com/pdone/lx-music-source',
     },
+
+    {
+        name: '袋鼠电影',
+        categoryId: '003',
+        kind: '影视资源',
+        desc: '无',
+        tags: ['资源'],
+        link: 'https://dsystv.com/',
+    },
     // ---------- 004 游戏世界 ----------
     {
         name: 'Steam',
         categoryId: '004',
-        kind: '游戏平台与官网',
+        kind: '游戏平台',
         icon: 'steam',
         desc: '全球最大的数字游戏发行与社区平台',
         tags: ['游戏平台', '游戏', 'steam'],
@@ -182,7 +201,7 @@ export const sites: Site[] = [
     {
         name: '逆水寒端游',
         categoryId: '004',
-        kind: '游戏平台与官网',
+        kind: '游戏官网',
         icon: 'game',
         desc: '经典的mmo游戏',
         tags: ['mmo', '游戏', '搬砖'],
@@ -192,11 +211,29 @@ export const sites: Site[] = [
     {
         name: '金铲铲之战',
         categoryId: '004',
-        kind: '游戏平台与官网',
+        kind: '游戏官网',
         desc: '腾讯旗下的热门自走棋游戏',
         tags: ['腾讯', '游戏'],
         link: 'https://jcc.qq.com/',
     },
+    {
+        name: '小黑盒',
+        categoryId: '004',
+        kind: '游戏社区',
+        desc: '近年来比较有规模的综合性游戏社区',
+        tags: ['游戏', '社区'],
+        link: 'https://xiaoheihe.cn/',
+    },
+    {
+        name: '千岛',
+        categoryId: '004',
+        kind: '交易平台',
+        desc: '2026比较好用的游戏交易平台',
+        tags: ['游戏', '搬砖', '交易平台'],
+        link: 'https://qiandao.com/',
+    },
+
+
     // ---------- 005 博客网站 ----------
     {
         name: '罗磊的独立博客',
@@ -274,6 +311,16 @@ export const sites: Site[] = [
         desc: '即将成为时代的眼泪',
         tags: ['微博', '咨询'],
         link: 'https://weibo.com/',
+    },
+
+    {
+        name: 'X',
+        categoryId: '009',
+        kind: '新闻资讯',
+        icon: 'x',
+        desc: '国际版微博',
+        tags: ['推特'],
+        link: 'https://x.com/home',
     },
     // ---------- 010 图片绘画 ----------
     {

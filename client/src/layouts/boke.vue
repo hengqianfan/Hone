@@ -7,6 +7,7 @@
 
         </div>
         <myFooter />
+        <GCtrl />
 
     </div>
 </template>
@@ -15,6 +16,7 @@
 import { onMounted } from 'vue'
 import GNav from '@/components/GNav/index.vue'
 import myFooter from '@/components/Footer/index.vue'
+import GCtrl from '@/components/GCtrl/index.vue'
 import VideoBackground from '@/components/Background/index.vue'
 
 

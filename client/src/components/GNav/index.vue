@@ -78,18 +78,18 @@ const navlist: NavItem[] = [
             }
         ]
     },
-
+    {
+        icon: 'icon-nav',
+        text: '网站',
+        router: 'Sites'
+    },
     {
         text: '心情瞬间',
         router: 'Moments',
         icon: 'icon-life'
     },
 
-    {
-        icon: 'icon-nav',
-        text: '网站',
-        router: 'Sites'
-    },
+
 
 
 
@@ -153,7 +153,8 @@ const toPage = (path?: string) => {
 
                 i {
                     font-size: 20px;
-                    color: var(--sub-font-color);
+                    color: var(--nav-option-font-color);
+
 
                     transition: color 0.3s ease-in-out;
                 }
@@ -161,7 +162,7 @@ const toPage = (path?: string) => {
                 &:hover {
 
                     i {
-                        color: var(--main-font-color);
+                        color: var(--nav-option-font-color-hover);
                     }
                 }
             }
@@ -216,7 +217,7 @@ const toPage = (path?: string) => {
                 padding: 6px 12px;
                 border-radius: 5px;
                 white-space: nowrap;
-                color: var(--main-font-color);
+                color: var(--nav-option-font-color-hover);
 
                 font-size: 12px;
 

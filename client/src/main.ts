@@ -10,7 +10,8 @@ import './styles/index.scss'
 import './styles/theme/index.scss'
 import 'highlight.js/styles/github-dark.css'
 
-// import CodeBlock from './components/CodeBlock/index.vue'
+
+
 
 const app = createApp(App)
 

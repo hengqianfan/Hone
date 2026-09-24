@@ -26,13 +26,11 @@ const settingStore = useSettingStore()
 
 const videoMap: Record<string, string> = {
 
-    '夏夜郊野': video1,
-    '城市霓虹': video2,
-    '海边列车': video3,
-    '窗外雨夜': video4,
-    '森林雪夜': video5,
-
-
+    'summer': video1,
+    'city': video2,
+    'seaside': video3,
+    'rainy': video4,
+    'forest': video5,
 
 }
 
@@ -44,7 +42,7 @@ const videoRef = ref<HTMLVideoElement | null>(null)
 
 const currentVideoSrc = computed(() => {
 
-    return videoMap[settingStore.videoName]
+    return videoMap[settingStore.state.background]
 
 })
 
@@ -53,7 +51,7 @@ const currentVideoSrc = computed(() => {
 
 watch(
 
-    () => settingStore.videoName,
+    () => settingStore.state.background,
 
     async () => {
 
