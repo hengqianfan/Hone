@@ -2,6 +2,10 @@ import type { Moment } from '@/types/moment'
 
 export const moments: Moment[] = [
     {
+        id: '2026100901',
+        text: 'ai好用到完全不想自己写代码了，不知道能不能活到赛博朋克的时代，科学家们加油！',
+    },
+    {
         id: '2026100501',
         text: '不想浪费时间，做自己想做的事更重要！',
     },
