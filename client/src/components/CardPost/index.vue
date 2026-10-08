@@ -5,7 +5,7 @@
         <div class="post-cover">
             <img class="cover-img" :src="coverSrc" :alt="post.title" loading="lazy" decoding="async"
                 @error="onCoverError" />
-            <!-- 深色模式遮罩层：铺满封面，hover 时变淡 -->
+            <!-- 深色遮罩层：铺满封面，hover 时变淡 -->
             <span class="cover-mask" aria-hidden="true"></span>
         </div>
 
@@ -28,13 +28,15 @@
                   标签为独立链接：点击进入标签页并带上筛选条件
                   关键：@click.stop 阻止冒泡，避免触发外层 RouterLink 跳转文章
                 -->
-                <RouterLink v-for="tag in visibleTags" :key="tag" class="tag" :to="{ path: '/tags', query: { tag } }"
-                    :title="`查看标签：${tag}`" @click.stop>
+                <RouterLink v-for="tag in visibleTags" :key="tag" class="tag"
+                    :to="{ path: '/articles', query: { tag } }" :title="`查看标签：${tag}`" @click.stop>
                     {{ tag }}
                 </RouterLink>
 
                 <!-- 超出 3 个的标签，折叠提示（点击走卡片进入文章） -->
-                <span v-if="restTagCount > 0" class="tag-more">+{{ restTagCount }}</span>
+                <span v-if="restTagCount > 0" class="tag-more">
+                    +{{ restTagCount }}
+                </span>
             </div>
         </div>
     </RouterLink>
@@ -64,8 +66,12 @@ const DEFAULT_COVER = './banners/banner01.png'
 const DEFAULT_ICON = './favicon.ico'
 
 /** 当前实际渲染的图片地址 */
-const coverSrc = ref(props.post.cover ? getImgURL(props.post.cover, 'cover') : DEFAULT_COVER)
-const iconSrc = ref(props.post.icon ? getImgURL(props.post.cover, 'icon') : DEFAULT_ICON)
+const coverSrc = ref(
+    props.post.cover ? getImgURL(props.post.cover, 'cover') : DEFAULT_COVER
+)
+const iconSrc = ref(
+    props.post.icon ? getImgURL(props.post.cover, 'icon') : DEFAULT_ICON
+)
 
 /** 是否已落到默认图，避免默认图再失败时无限循环 */
 const coverFallbackUsed = ref(false)
@@ -118,44 +124,50 @@ const onIconError = (e: Event) => {
 </script>
 
 <style lang="scss" scoped>
+/* 组件级静态尺寸（非主题变量，仅保留必要的结构常量） */
+$post-radius: 16px;
+$post-line-height: 24px;
+$post-icon-size: 28px;
+$post-card-width: 300px;
+
 .post {
-    --post-radius: 16px;
-    --post-line-height: 24px;
-    --post-icon-size: 28px;
-    --post-card-width: 300px;
-
-    /* 封面缩放倍率：静止 1，悬浮 1.3 */
-    --cover-scale: 1;
-
-    /* 封面黑色遮罩浓度：静止较深，悬浮变淡 */
-    --cover-mask-alpha: 0.35;
-
     box-sizing: border-box;
 
     display: flex;
     flex-direction: column;
 
     /* 宽度写死，杜绝随内容伸缩 */
-    width: var(--post-card-width);
-    min-width: var(--post-card-width);
-    max-width: var(--post-card-width);
+    width: $post-card-width;
+    min-width: $post-card-width;
+    max-width: $post-card-width;
     height: 100%;
 
     padding: 10px;
-    border-radius: var(--post-radius);
-    background-color: var(--card-post-bg);
+    border-radius: $post-radius;
+
+    /* 黑色主题卡面 */
+    background-color: #17181a;
+
     backdrop-filter: blur(10px);
     box-shadow:
-        0 1px 2px rgba(0, 0, 0, 0.06),
-        0 8px 24px -12px rgba(0, 0, 0, 0.35);
+        0 1px 2px rgba(0, 0, 0, 0.4),
+        0 8px 24px -12px rgba(0, 0, 0, 0.75);
+
     text-decoration: none;
     overflow: hidden;
+
+    /* 封面缩放倍率：静止 1，悬浮 1.3 */
+    --cover-scale: 1;
+    /* 封面黑色遮罩浓度：静止较深，悬浮变淡 */
+    --cover-mask-alpha: 0.35;
 
     /* 用 JS 维护的 is-hover 类驱动子元素变化 */
     &.is-hover {
         --cover-scale: 1.3;
         /* 悬浮时遮罩变淡，封面“亮”起来 */
         --cover-mask-alpha: 0.12;
+
+        backdrop-filter: blur(20px);
 
         .post-title {
             color: #7cc7ea;
@@ -179,8 +191,8 @@ const onIconError = (e: Event) => {
         width: 100%;
         aspect-ratio: 2 / 1;
         overflow: hidden;
-        border-radius: calc(var(--post-radius) - 6px);
-        background-color: rgba(0, 0, 0, 0.15);
+        border-radius: calc($post-radius - 6px);
+        background-color: rgba(255, 255, 255, 0.06);
 
         .cover-img {
             display: block;
@@ -193,7 +205,7 @@ const onIconError = (e: Event) => {
             will-change: transform;
         }
 
-        /* 深色模式遮罩：铺满封面，位于图片之上 */
+        /* 深色遮罩：铺满封面，位于图片之上 */
         .cover-mask {
             position: absolute;
             inset: 0;
@@ -202,7 +214,6 @@ const onIconError = (e: Event) => {
             pointer-events: none;
             /* 不拦截点击，保证整卡跳转 */
             background-color: rgba(0, 0, 0, var(--cover-mask-alpha));
-            /* 与图片缩放同节奏过渡 */
             transition: background-color 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
         }
     }
@@ -214,7 +225,7 @@ const onIconError = (e: Event) => {
         justify-content: center;
         gap: 0.5rem;
         padding: 12px 6px 4px;
-        min-height: calc(2 * var(--post-line-height));
+        min-height: calc(2 * $post-line-height);
     }
 
     .post-icon {
@@ -222,8 +233,8 @@ const onIconError = (e: Event) => {
 
         img {
             display: block;
-            width: var(--post-icon-size);
-            height: var(--post-icon-size);
+            width: $post-icon-size;
+            height: $post-icon-size;
             object-fit: cover;
             padding: 1px;
             border: 1.5px solid rgba(255, 255, 255, 0.5);
@@ -240,7 +251,7 @@ const onIconError = (e: Event) => {
         font-size: 16px;
         font-weight: 600;
         letter-spacing: 0.01em;
-        line-height: var(--post-line-height);
+        line-height: $post-line-height;
         color: #fff;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -265,7 +276,8 @@ const onIconError = (e: Event) => {
             flex-shrink: 0;
             font-size: 12.5px;
             font-weight: 500;
-            color: var(--post-meta-color, #9aa0a6);
+            /* 深色主题下的次级文字色（原 #9aa0a6 是浅色主题配色） */
+            color: #8b939e;
             white-space: nowrap;
         }
 

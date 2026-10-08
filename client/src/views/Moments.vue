@@ -66,6 +66,7 @@
         </header>
 
 
+
         <!-- ============ 垂直时间轴 ============ -->
         <div class="timeline">
             <div v-for="group in groupedMoments" :key="group.key" class="timeline-group">
@@ -496,7 +497,7 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 5px;
+    margin-top: 20px;
 
 }
 
@@ -506,7 +507,7 @@ onMounted(() => {
 
 .moments-header {
     width: 100%;
-    max-width: 1000px;
+    max-width: 900px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -514,9 +515,15 @@ onMounted(() => {
     gap: 18px;
     padding: 28px 24px;
     border-radius: 20px;
-    background-color: var(--main-bg);
-    border: 0.3px solid var(--page-moments-border);
-    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
+
+    /* 黑色玻璃：半透明黑底 + 背景模糊 */
+    background-color: rgba(23, 24, 26, 0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.4),
+        0 12px 32px -18px rgba(0, 0, 0, 0.8);
 }
 
 .header-title {
@@ -524,7 +531,7 @@ onMounted(() => {
     font-weight: bold;
     line-height: 1.1;
     letter-spacing: 0.5px;
-    color: var(--main-font-color);
+    color: #e9edf2;
 
 }
 
@@ -546,12 +553,18 @@ onMounted(() => {
     gap: 10px;
     padding: 12px 16px;
     border-radius: 14px;
-    background: var(--main-bg);
-    color: var(--main-font-color);
+
+    /* 次级玻璃层 */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    color: #e9edf2;
     transition: background 0.25s ease, transform 0.25s ease;
 }
 
-
+.stat-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
 
 .stat-icon {
     display: flex;
@@ -578,7 +591,7 @@ onMounted(() => {
 
 .stat-desc {
     font-size: 12px;
-    color: #888;
+    color: #8b939e;
     white-space: nowrap;
 }
 
@@ -588,10 +601,9 @@ onMounted(() => {
     text-align: center;
     font-size: 14px;
     line-height: 22px;
-    // color: #888;
     padding: 10px;
     border-radius: 10px;
-    color: var(--main-font-color);
+    color: #c7ced8;
 
 }
 
@@ -602,12 +614,15 @@ onMounted(() => {
 .filters {
     width: 100%;
     max-width: 1000px;
+
     display: flex;
     flex-direction: column;
     gap: 10px;
     padding: 14px 18px;
     border-radius: 15px;
-    // background-color: var(--main-bg);
+
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     box-sizing: border-box;
 }
 
@@ -615,38 +630,40 @@ onMounted(() => {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 5px;
 }
 
 .filter-label {
-    font-size: 13px;
+    font-size: 12px;
     opacity: 0.7;
     margin-right: 4px;
-    color: var(--main-font-color)
+    color: #e9edf2;
 }
 
 .chip {
-    padding: 5px 12px;
-    border: none;
+    padding: 3px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 20px;
     font-size: 13px;
-    color: inherit;
     cursor: pointer;
-    background-color: var(--page-moments-chip-bg);
-    color: var(--page-moments-chip-font-color);
+
+    background-color: rgba(255, 255, 255, 0.06);
+    color: #e9edf2;
     transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 
 }
 
 .chip:hover:not(:disabled) {
     transform: translateY(-1px);
+    background-color: rgba(255, 255, 255, 0.12);
 }
 
 .chip.active {
 
     font-weight: 600;
-    background-color: var(--page-moments-chip-bg-active);
-    border: 0.3px solid var(--page-moments-chip-border);
+    background-color: rgba(93, 172, 209, 0.85);
+    color: #06121a;
+    border: 1px solid rgba(124, 199, 234, 0.65);
 }
 
 .chip:disabled {
@@ -675,7 +692,9 @@ onMounted(() => {
     bottom: 8px;
     width: 2px;
     transform: translateX(-50%);
-    background: linear-gradient(to bottom, rgba(128, 128, 128, 0.45), rgba(128, 128, 128, 0.08));
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0.28),
+            rgba(255, 255, 255, 0.04));
     border-radius: 2px;
 }
 
@@ -695,24 +714,26 @@ onMounted(() => {
     padding: 10px 16px;
     width: fit-content;
     border-radius: 20px;
-    background-color: var(--main-bg);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 
+    background-color: rgba(23, 24, 26, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px -8px rgba(0, 0, 0, 0.8);
 }
-
 
 .group-title {
     font-size: 15px;
     font-weight: 700;
     letter-spacing: 0.4px;
 
-    color: var(--main-font-color);
+    color: #e9edf2;
 }
 
 .group-count {
     font-size: 12px;
     opacity: 0.5;
-    color: var(--main-font-color);
+    color: #e9edf2;
 }
 
 .timeline-items {
@@ -736,8 +757,10 @@ onMounted(() => {
     height: 10px;
     transform: translateX(-50%);
     border-radius: 50%;
-    background-color: var(--page-moments-chip-bg-active);
-    border: 2px solid var(--page-moments-timeline-dot-border);
+
+    background-color: rgba(93, 172, 209, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 0 0 4px rgba(93, 172, 209, 0.15);
     z-index: 3;
 }
 
@@ -761,18 +784,28 @@ onMounted(() => {
     max-width: 460px;
     overflow: hidden;
     border-radius: 16px;
-    background-color: var(--page-moments-card-text-only-bg);
-    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.08);
+
+    background-color: rgba(23, 24, 26, 0.72);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.4),
+        0 10px 28px -16px rgba(0, 0, 0, 0.85);
     cursor: pointer;
     outline: none;
     padding: 10px;
-    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease,
+        border-color 0.28s ease;
 }
 
 .moment:hover,
 .moment:focus-visible {
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+    border-color: rgba(124, 199, 234, 0.35);
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.45),
+        0 18px 40px -18px rgba(0, 0, 0, 0.9);
     z-index: 2;
 }
 
@@ -782,6 +815,7 @@ onMounted(() => {
     aspect-ratio: 16 / 9;
     overflow: hidden;
     border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.06);
 }
 
 .cover img {
@@ -810,6 +844,7 @@ onMounted(() => {
     color: #fff;
     background: rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     pointer-events: none;
 }
 
@@ -844,7 +879,6 @@ onMounted(() => {
             rgba(0, 0, 0, 0.55) 40%,
             rgba(0, 0, 0, 0.85));
     pointer-events: none;
-    // background-color: rebeccapurple;
 }
 
 .top,
@@ -891,7 +925,8 @@ onMounted(() => {
     position: relative;
     padding: 18px 20px 20px;
     overflow: hidden;
-    background-color: var(--page-moments-card-text-only-bg);
+    background-color: rgba(23, 24, 26, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 10px;
 
 }
@@ -899,7 +934,7 @@ onMounted(() => {
 .text-meta {
     margin-bottom: 10px;
     opacity: 0.65;
-    color: var(--main-font-color);
+    color: #c7ced8;
 }
 
 .text-body {
@@ -914,7 +949,7 @@ onMounted(() => {
     -webkit-box-orient: vertical;
     overflow: hidden;
     max-height: calc(1.85em * 6);
-    color: var(--page-moments-card-text-only-font-color);
+    color: #d7dde5;
 
 }
 
@@ -925,7 +960,11 @@ onMounted(() => {
     right: 0;
     bottom: 0;
     height: 46px;
-    background: linear-gradient(to bottom, transparent, var(--bg-color));
+
+    /* 底部渐隐：从透明过渡到黑玻璃卡面同色 */
+    background: linear-gradient(to bottom,
+            rgba(23, 24, 26, 0),
+            rgba(23, 24, 26, 0.95));
     pointer-events: none;
 }
 
@@ -935,7 +974,7 @@ onMounted(() => {
     display: inline-block;
     margin-top: 12px;
     font-size: 12px;
-    color: var(--page-moments-card-text-only-more-color);
+    color: #7cc7ea;
     font-weight: 600;
 
     opacity: 0;
@@ -956,7 +995,7 @@ onMounted(() => {
 .empty {
     padding: 60px 20px;
     text-align: center;
-    color: #888;
+    color: #8b939e;
     font-size: 14px;
 }
 
@@ -970,6 +1009,7 @@ onMounted(() => {
     z-index: 9999;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -988,9 +1028,12 @@ onMounted(() => {
     flex-direction: column;
     border-radius: 18px;
     overflow: hidden;
-    background: rgba(28, 28, 30, 0.98);
+    background: rgba(20, 21, 23, 0.92);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #f2f2f2;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
     cursor: default;
     animation: viewer-pop 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -1159,6 +1202,7 @@ onMounted(() => {
     justify-content: center;
     transition: background 0.2s ease;
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .viewer-nav:hover:not(:disabled) {
@@ -1189,6 +1233,7 @@ onMounted(() => {
     color: #fff;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .viewer-foot {

@@ -1,0 +1,113 @@
+$light-theme: (
+    main-bg: rgba(255, 255, 255, 0.55),
+    sub-bg: rgba(245, 247, 250, 0.5),
+    //
+    base-color-01: #1f2329,
+    // 主文字色：深灰，替代纯黑
+    base-color-02: #ffffff,
+    // 卡片/高亮底：纯白
+    main-font-color: #1f2329,
+    // 主标题：深灰，不用纯黑
+    sub-font-color: #5b6169,
+    // 副文字：中灰，比黑更柔和
+    nav-bg: rgb(200, 200, 200),
+    nav-border-color: white,
+    nav-option-bg: rgb(45, 74, 107),
+    nav-option-font-color: rgb(200, 200, 200),
+    nav-option-font-color-hover: white,
+    //
+    profile-card-bg: rgba(240, 248, 255, 0.5),
+    profile-card-body-bg: rgba(240, 248, 255, 1),
+    profile-card-logo-bg: rgba(31, 35, 41, 0.05),
+    profile-card-logo-border-color: rgba(31, 35, 41, 0.08),
+    profile-card-motto-font-color: #7a8087,
+    // 座右铭：浅灰
+    profile-card-intro-font-color: #3a4048,
+    // 简介：深灰
+    profile-card-social-links-bg: aliceblue,
+    // 保留点缀色
+    profile-card-social-links-font-color: #1f2329,
+    profile-card-social-links-font-color-hover: #0056b3,
+    //
+    danmaku-wall-bg: rgba(255, 255, 255, 0.55),
+    danmaku-wall-bg-in: rgba(255, 255, 255, 0.72),
+    //
+    cd-bg: rgba(255, 255, 255, 0.55),
+    cd-bg-in: rgba(255, 255, 255, 0.72),
+    //
+    card-post-bg: rgba(255, 255, 255, 0.5),
+
+    // 导航：中灰
+    //
+    page-moments-border: rgba(31, 35, 41, 0.08),
+    page-moments-chip-bg: rgba(31, 35, 41, 0.04),
+    page-moments-chip-font-color: #3a4048,
+    page-moments-chip-bg-active: #e8f0fb,
+    // 选中态：淡蓝，呼应原 rgb(60,60,107)
+    page-moments-chip-border: rgba(31, 35, 41, 0.08),
+    page-moments-card-text-only-bg: rgba(255, 255, 255, 0.6),
+    page-moments-card-text-only-font-color: #3a4048,
+    page-moments-card-text-only-more-color: #2b8a8a,
+    // 原青绿压暗，浅底上才看得清
+    //
+    page-sites-top-bg: rgba(255, 255, 255, 0.55),
+    // GPannel 组件
+    gp-pannel-bg: rgba(255, 255, 255, 0.5),
+    gp-pannel-border: rgba(255, 255, 255, 0.6),
+    gp-pannel-avatar-bg: rgba(255, 255, 255, 0.6),
+    gp-pannel-sitename-fc: #333,
+    gp-pannel-motto-fc: #555,
+    gp-pannel-intro-bg:rgba(255, 255, 255, 0.5),
+    gp-pannel-intro-fc: #666,
+    gp-pannel-intro-border: white,
+
+    // GCtrl 组件
+    gc-option-bg: rgba(255, 255, 255, 0.5),
+    gc-option-bg-hover: #357052,
+    gc-option-fc: #357052,
+    gc-option-fc-hover: white,
+    gc-option-bg-active: #357052,
+    gc-option-fc-active: white,
+
+    // GHub 组件
+    gh-logo-bg: rgba(255, 255, 255, 0.5),
+    gh-logo-border:white,
+
+    gh-logo-panel-bg: rgba(255, 255, 255, 0.7),
+
+
+    // 文章合集页
+    page-posts-nav-bg: rgba(255, 255, 255, 0.5),
+    page-posts-nav-border: rgba(31, 35, 41, 0.08),
+    page-posts-nav-blur: 10px,
+    page-posts-nav-font-color: #f1f1f1,
+    page-posts-pagination-option-bg: rgba(255, 255, 255, 0.4),
+    page-posts-pagination-option-bg-hover: rgb(52, 52, 105),
+    page-posts-pagination-option-fc: white,
+    page-posts-pagination-option-fc-hover: #43494e,
+
+
+    // 详情页组件
+    post-detail-bg: rgb(230, 230, 230, 0.8),
+    post-detail-header-bg: rgb(230, 230, 230, 0.1),
+    post-detail-toc-bg: rgb(230, 230, 230, 0.1),
+    post-detail-toc-blur: 50px,
+    post-detail-toc-fc-active:#6dc999,
+
+    page-sites-bg:white,
+
+    // 加载组件
+
+    loading-bg: white,
+
+
+    //  md 样式
+    md-table-title-bg: rgb(211, 230, 247),
+    md-table-odd-bg: rgba(240, 248, 255, 0.9),
+    md-table-even-bg: rgba(255, 255, 255, 0.9),
+    md-table-title-fs: 16px,
+    md-table-fs: 13px,
+
+
+
+);

@@ -1,48 +1,113 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { CATEGORIES, type CategoryId } from '@/types/site';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { CATEGORIES, type CategoryId, type Site } from '@/types/site';
 import { sites } from '@/config/sites';
 import SiteCard from '@/components/CardSiteP/index.vue';
 
+/* ============ ① 基础状态 ============ */
 const keyword = ref('');
+const debouncedKeyword = ref('');
 const activeId = ref<CategoryId | 'all'>('all');
 /** 当前选中的二级分类：'all' | kind 名 */
 const activeKind = ref<string>('all');
-
-/** 标签/搜索面板是否展开（默认收起） */
-const filtersOpen = ref(false);
-
-/** 所有可用标签（kind 与 tags 合并去重） */
-const allTags = computed(() => {
-    const set = new Set<string>();
-    sites.forEach((s) => {
-        set.add(s.kind);
-        s.tags.forEach((t) => set.add(t));
-    });
-    return [...set];
-});
+/** 标签栏是否展开（默认收起，点击搜索/输入关键词时展开） */
+const tagsOpen = ref(false);
 /** 选中的标签（多选） */
 const activeTags = ref<string[]>([]);
 
+/* 搜索框引用，便于点击「搜索」按钮时聚焦 */
+const searchInput = ref<HTMLInputElement | null>(null);
+
+/* ============ ② 搜索防抖 ============ */
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+watch(keyword, (v) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => (debouncedKeyword.value = v), 200);
+    // 搜索时自动显示标签栏
+    if (v) tagsOpen.value = true;
+});
+onBeforeUnmount(() => clearTimeout(debounceTimer));
+
+/* 点击「搜索」：展开标签栏并聚焦输入框 */
+const openSearch = () => {
+    tagsOpen.value = true;
+    searchInput.value?.focus();
+};
+
+/* ============ ③ 标签池（带同标签数量统计） ============ */
+/**
+ * 统计口径：一个站点若同时命中 kind 与 tags 中的同名标签，只计一次。
+ * 数量基于「关键词过滤后的结果集」，因此会随搜索实时变化。
+ */
+const allTags = computed(() => {
+    const map = new Map<string, number>();
+
+    const kw = debouncedKeyword.value.trim().toLowerCase();
+
+    sites.forEach((s) => {
+        // 关键词预过滤：让标签数量与当前搜索结果保持一致
+        if (kw) {
+            const hit =
+                s.name.toLowerCase().includes(kw) ||
+                (s.tags ?? []).some((t) => t.toLowerCase().includes(kw)) ||
+                s.kind.toLowerCase().includes(kw);
+            if (!hit) return;
+        }
+
+        // 该站点涉及的标签集合（去重，避免 kind 与 tags 同名重复计数）
+        const names = new Set<string>();
+        if (s.kind) names.add(s.kind);
+        (s.tags ?? []).forEach((t) => t && names.add(t));
+
+        names.forEach((name) => {
+            map.set(name, (map.get(name) ?? 0) + 1);
+        });
+    });
+
+    return [...map.entries()]
+        .map(([tag, count]) => ({ tag, count }))
+        // 数量多的靠前，数量相同按字典序
+        .sort((a, b) => (b.count - a.count) || a.tag.localeCompare(b.tag));
+});
+
+/** 标签总数（标签栏头部展示） */
+const tagTotalCount = computed(() => allTags.value.length);
+
 const toggleTag = (tag: string) => {
-    const i = activeTags.value.indexOf(tag);
-    i > -1 ? activeTags.value.splice(i, 1) : activeTags.value.push(tag);
+    if (activeTags.value.includes(tag)) {
+        activeTags.value = activeTags.value.filter((t) => t !== tag);
+    } else {
+        activeTags.value = [...activeTags.value, tag];
+    }
     activeKind.value = 'all';
 };
 
 const clearTags = () => {
     activeTags.value = [];
+    activeKind.value = 'all';
 };
 
-// 关键字 + 标签过滤
-const filtered = computed(() => {
-    const kw = keyword.value.trim().toLowerCase();
+const resetAll = () => {
+    keyword.value = '';
+    debouncedKeyword.value = '';
+    activeTags.value = [];
+    activeKind.value = 'all';
+    activeId.value = 'all';
+};
+
+const hasFilter = computed(
+    () => !!debouncedKeyword.value || activeTags.value.length > 0,
+);
+
+/* ============ ④ 过滤 ============ */
+const filtered = computed<Site[]>(() => {
+    const kw = debouncedKeyword.value.trim().toLowerCase();
     let list = sites;
     if (kw) {
         list = list.filter(
             (s) =>
                 s.name.toLowerCase().includes(kw) ||
-                s.tags.some((t) => t.toLowerCase().includes(kw)) ||
+                (s.tags ?? []).some((t) => t.toLowerCase().includes(kw)) ||
                 s.kind.toLowerCase().includes(kw),
         );
     }
@@ -50,15 +115,25 @@ const filtered = computed(() => {
         list = list.filter(
             (s) =>
                 activeTags.value.includes(s.kind) ||
-                s.tags.some((t) => activeTags.value.includes(t)),
+                (s.tags ?? []).some((t) => activeTags.value.includes(t)),
         );
     }
     return list;
 });
 
-// 给一个站点列表按 kind 拆成二级分组（保持首次出现顺序）
-const buildSubGroups = (list: typeof sites) => {
-    const map = new Map<string, typeof sites>();
+/* ============ ⑤ 计数预聚合 ============ */
+const countMap = computed(() => {
+    const map = new Map<string, number>();
+    for (const s of filtered.value) {
+        map.set(s.categoryId, (map.get(s.categoryId) ?? 0) + 1);
+    }
+    return map;
+});
+const countOf = (id: CategoryId) => countMap.value.get(id) ?? 0;
+
+/* ============ ⑥ 二级分组 ============ */
+const buildSubGroups = (list: Site[]) => {
+    const map = new Map<string, Site[]>();
     list.forEach((s) => {
         if (!map.has(s.kind)) map.set(s.kind, []);
         map.get(s.kind)!.push(s);
@@ -66,7 +141,6 @@ const buildSubGroups = (list: typeof sites) => {
     return [...map.entries()].map(([kind, items]) => ({ kind, items }));
 };
 
-// 一级分类分组 -> 内含二级分组
 const groups = computed(() =>
     CATEGORIES.map((cat) => {
         const items = filtered.value.filter((s) => s.categoryId === cat.id);
@@ -74,14 +148,26 @@ const groups = computed(() =>
     }),
 );
 
-// 一级分类筛选
 const visibleGroups = computed(() =>
     activeId.value === 'all'
         ? groups.value
         : groups.value.filter((g) => g.id === activeId.value),
 );
 
-// 当前可见分组内实际渲染的二级分组（支持二级筛选）
+const kindOptions = computed(() => {
+    const set = new Set<string>();
+    visibleGroups.value.forEach((g) =>
+        g.subGroups.forEach((sub) => set.add(sub.kind)),
+    );
+    return [...set];
+});
+
+watch(kindOptions, (opts) => {
+    if (activeKind.value !== 'all' && !opts.includes(activeKind.value)) {
+        activeKind.value = 'all';
+    }
+});
+
 const renderedGroups = computed(() =>
     visibleGroups.value
         .map((g) => ({
@@ -93,18 +179,19 @@ const renderedGroups = computed(() =>
         .filter((g) => g.subGroups.length > 0),
 );
 
-// 当前一级分类下可用的二级分类
-const kindOptions = computed(() => {
-    const set = new Set<string>();
-    visibleGroups.value.forEach((g) => g.subGroups.forEach((sub) => set.add(sub.kind)));
-    return [...set];
-});
-
-const countOf = (id: CategoryId) =>
-    filtered.value.filter((s) => s.categoryId === id).length;
+/* ============ ⑦ 内部滚动定位 ============ */
+const scrollContainer = ref<HTMLElement | null>(null);
 
 const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const container = scrollContainer.value;
+    if (!container) return;
+    const target = container.querySelector<HTMLElement>(`#${CSS.escape(id)}`);
+    if (!target) return;
+    const top =
+        target.getBoundingClientRect().top -
+        container.getBoundingClientRect().top +
+        container.scrollTop;
+    container.scrollTo({ top, behavior: 'smooth' });
 };
 
 const pickCategory = (id: CategoryId | 'all') => {
@@ -124,83 +211,103 @@ const pickKind = (kind: string) => {
 </script>
 
 <template>
-    <div id="nav-top" class="np">
-        <!-- 顶部栏：标题 + 展开筛选按钮 -->
+    <div class="np">
+        <!-- 顶部栏：固定不滚动 -->
         <header class="np-header">
             <div class="np-brand">
-                <span class="np-brand__dot" />
+                <span class="np-brand__dot" aria-hidden="true" />
                 <h1 class="np-title">网站导航</h1>
             </div>
 
-            <div class="np-tools">
-                <button class="np-icon-btn" :class="{ 'is-on': filtersOpen }" type="button"
-                    @click="filtersOpen = !filtersOpen">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 5h18M6 12h12M10 19h4" stroke-linecap="round" />
+            <!-- 常驻搜索框 -->
+            <div class="np-searchbar">
+                <div class="np-search">
+                    <svg class="np-search__icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                        stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m20 20-3.5-3.5" stroke-linecap="round" />
                     </svg>
-                    筛选
-                    <span v-if="activeTags.length" class="np-badge">{{ activeTags.length }}</span>
+                    <input ref="searchInput" v-model="keyword" class="np-search__input" type="search"
+                        aria-label="搜索站点名称、标签或类型" placeholder="搜索站点名称、标签或类型…" @focus="tagsOpen = true" />
+                    <button v-if="keyword" class="np-search__clear" type="button" aria-label="清空搜索"
+                        @click="keyword = ''">
+                        ✕
+                    </button>
+                </div>
+
+                <button class="np-btn np-btn--ghost np-search-btn" type="button" aria-label="搜索并展开标签"
+                    @click="openSearch">
+                    搜索
+                </button>
+
+                <button v-if="hasFilter" class="np-btn np-btn--ghost" type="button" @click="resetAll">
+                    重置
                 </button>
             </div>
         </header>
 
-        <!-- 可折叠：搜索 + 标签 -->
+        <!-- 可折叠：标签栏（默认收起，点击搜索 / 输入关键词时显示） -->
         <transition name="np-drop">
-            <div v-show="filtersOpen" class="np-panel">
-                <div class="np-search">
-                    <svg class="np-search__icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
-                        stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="7" />
-                        <path d="m20 20-3.5-3.5" stroke-linecap="round" />
-                    </svg>
-                    <input v-model="keyword" class="np-search__input" type="search" placeholder="搜索站点名称、标签或类型…" />
-                    <button v-if="keyword" class="np-search__clear" type="button" @click="keyword = ''">✕</button>
+            <div v-show="tagsOpen" id="np-panel" class="np-panel">
+                <div class="np-tags__head">
+                    <span class="np-tags__title">标签</span>
+                    <span class="np-tags__total">共 {{ tagTotalCount }} 个</span>
+                    <button class="np-tags__close" type="button" aria-label="收起标签" @click="tagsOpen = false">
+                        ✕
+                    </button>
                 </div>
 
                 <div class="np-tags">
-                    <button class="np-tag" :class="{ 'is-on': !activeTags.length }" type="button" @click="clearTags()">
+                    <button class="np-chip" type="button" :aria-pressed="!activeTags.length"
+                        :class="{ 'is-on': !activeTags.length }" @click="clearTags()">
                         全部标签
+                        <span class="np-chip__count">{{ sites.length }}</span>
                     </button>
-                    <button v-for="tag in allTags" :key="tag" class="np-tag"
-                        :class="{ 'is-on': activeTags.includes(tag) }" type="button" @click="toggleTag(tag)">
-                        {{ tag }}
+                    <button v-for="item in allTags" :key="item.tag" class="np-chip" type="button"
+                        :aria-pressed="activeTags.includes(item.tag)"
+                        :class="{ 'is-on': activeTags.includes(item.tag) }" @click="toggleTag(item.tag)">
+                        {{ item.tag }}
+                        <span class="np-chip__count">{{ item.count }}</span>
                     </button>
                 </div>
             </div>
         </transition>
 
+        <!-- 可滚动主体：侧栏固定 + 右侧卡片滚动 -->
         <div class="np-body">
-            <!-- 一级分类：左侧竖向导航 -->
-            <aside class="np-side">
-                <button class="np-cat" :class="{ 'is-on': activeId === 'all' }" type="button"
-                    @click="pickCategory('all')">
+            <aside class="np-side" aria-label="一级分类">
+                <button class="np-cat" type="button" :aria-pressed="activeId === 'all'"
+                    :class="{ 'is-on': activeId === 'all' }" @click="pickCategory('all')">
                     <span class="np-cat__name">全部</span>
                     <span class="np-cat__count">{{ filtered.length }}</span>
                 </button>
-                <button v-for="cat in CATEGORIES" :key="cat.id" class="np-cat" :class="{ 'is-on': activeId === cat.id }"
-                    type="button" @click="pickCategory(cat.id)">
+                <button v-for="cat in CATEGORIES" :key="cat.id" class="np-cat" type="button"
+                    :aria-pressed="activeId === cat.id" :class="{ 'is-on': activeId === cat.id }"
+                    @click="pickCategory(cat.id)">
                     <span class="np-cat__name">{{ cat.name }}</span>
                     <span class="np-cat__count">{{ countOf(cat.id) }}</span>
                 </button>
             </aside>
 
-            <!-- 主内容 -->
-            <main class="np-main">
-                <!-- 二级分类：分段 pill -->
-                <div v-if="kindOptions.length > 1" class="np-kinds">
-                    <button class="np-kind" :class="{ 'is-on': activeKind === 'all' }" type="button"
-                        @click="pickKind('all')">
+            <!-- 主内容：唯一的滚动容器 -->
+            <main ref="scrollContainer" class="np-main">
+                <div id="nav-top" class="np-anchor" aria-hidden="true" />
+
+                <div v-if="kindOptions.length > 1" class="np-kinds" role="tablist" aria-label="二级类型">
+                    <button class="np-kind" type="button" role="tab" :aria-selected="activeKind === 'all'"
+                        :class="{ 'is-on': activeKind === 'all' }" @click="pickKind('all')">
                         全部类型
                     </button>
-                    <button v-for="kind in kindOptions" :key="kind" class="np-kind"
-                        :class="{ 'is-on': activeKind === kind }" type="button" @click="pickKind(kind)">
+                    <button v-for="kind in kindOptions" :key="kind" class="np-kind" type="button" role="tab"
+                        :aria-selected="activeKind === kind" :class="{ 'is-on': activeKind === kind }"
+                        @click="pickKind(kind)">
                         {{ kind }}
                     </button>
                 </div>
 
                 <section v-for="group in renderedGroups" :id="`cat-${group.id}`" :key="group.id" class="np-section">
                     <h2 class="np-section__title">
-                        <span class="np-section__bar" />
+                        <span class="np-section__bar" aria-hidden="true" />
                         {{ group.name }}
                         <span class="np-section__count">{{ group.items.length }}</span>
                     </h2>
@@ -208,7 +315,7 @@ const pickKind = (kind: string) => {
                     <div v-for="sub in group.subGroups" :id="`kind-${sub.kind}`" :key="sub.kind" class="np-sub">
                         <h3 class="np-sub__title">
                             {{ sub.kind }}
-                            <span class="np-sub__line" />
+                            <span class="np-sub__line" aria-hidden="true" />
                             <span class="np-sub__count">{{ sub.items.length }}</span>
                         </h3>
 
@@ -218,113 +325,89 @@ const pickKind = (kind: string) => {
                     </div>
                 </section>
 
-                <p v-if="!renderedGroups.length" class="np-empty">暂无匹配站点</p>
+                <div v-if="!renderedGroups.length" class="np-empty">
+                    <p class="np-empty__text">
+                        {{ hasFilter ? '没有符合当前筛选条件的站点' : '暂无站点数据' }}
+                    </p>
+                    <button v-if="hasFilter" class="np-btn np-btn--primary" type="button" @click="resetAll">
+                        清空全部筛选
+                    </button>
+                </div>
             </main>
         </div>
     </div>
 </template>
 
 <style lang="scss" scoped>
-/* ============ 主题变量：写死的深色 ============ */
+/* ==================================================================
+   黑色玻璃主题（全部写死色值，无 CSS 变量依赖）
+   ================================================================== */
 .np {
-    --bg: var(--main-bg);
-    --bg-soft: #12161f;
-    --bg-raise: #171c26;
-    --line: #232a36;
-    --line-soft: #1b212b;
-    --text: #e6e9ef;
-    --text-dim: #9aa4b2;
-    --text-mute: #6b7482;
-    --accent: #7c8cff;
-    --accent-soft: rgba(124, 140, 255, .14);
-    --accent-line: rgba(124, 140, 255, .4);
-
-    /* 页面内容最大宽度：宽屏时放开，让网格能排更多列 */
-    --page-max: 1680px;
-    /* 侧栏宽度，用于主内容宽度计算 */
-    --side-w: 190px;
-
-    min-height: 100vh;
-    background: var(--main-bg);
-    color: var(--text);
-    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
     color-scheme: dark;
+    height: 100vh;
+    height: 100dvh;
+    box-sizing: border-box;
+    padding: 60px 80px;
 
-    border-radius: 25px;
-    background-color: var(--page-site-bg-color);
-}
-
-/* ============ 顶部 ============ */
-.np-header {
-    border-radius: 30px 30px 0 0;
-    position: sticky;
-    top: 0;
-    z-index: 20;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    max-width: var(--page-max);
-    margin: 0 auto;
-    padding: 18px 24px;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 
-    backdrop-filter: blur(4px);
-    border-bottom: 1px solid var(--line-soft);
-    background-color: var(--page-sites-top-bg);
+    color: #e8e8ea;
+    background: transparent;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+        Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-.np-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.np-brand__dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 0 4px var(--accent-soft);
-}
-
-.np-title {
-    margin: 0;
-    font-size: 19px;
-    font-weight: 650;
-    letter-spacing: .2px;
-    color: var(--text);
-}
-
-.np-tools {
-    display: flex;
-    gap: 10px;
-}
-
-.np-icon-btn {
-    position: relative;
+/* ============ 通用按钮 ============ */
+.np-btn {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    padding: 8px 14px;
-    font-size: 13px;
-    color: var(--text-dim);
-    background: var(--bg-soft);
-    border: 1px solid var(--line);
-    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 13.5px;
+    font-family: inherit;
+    border-radius: 11px;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: .18s;
+    transition: color 0.18s ease, background 0.18s ease,
+        border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.np-icon-btn:hover {
-    color: var(--text);
-    border-color: var(--accent-line);
+.np-btn--ghost {
+    color: #9a9aa2;
+    background: rgba(28, 28, 32, 0.45);
+    border-color: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-.np-icon-btn.is-on {
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-color: var(--accent-line);
+.np-btn--ghost:hover {
+    color: #e8e8ea;
+    border-color: rgba(139, 139, 255, 0.45);
+    background: rgba(40, 40, 46, 0.85);
+}
+
+.np-btn--ghost.is-on {
+    color: #8b8bff;
+    background: rgba(139, 139, 255, 0.14);
+    border-color: rgba(139, 139, 255, 0.45);
+}
+
+.np-btn--primary {
+    color: #ffffff;
+    background: #8b8bff;
+    border-color: #8b8bff;
+    box-shadow: 0 2px 10px -2px rgba(139, 139, 255, 0.35);
+}
+
+.np-btn--primary:hover {
+    background: #7676f5;
+    border-color: #7676f5;
 }
 
 .np-badge {
@@ -334,107 +417,246 @@ const pickKind = (kind: string) => {
     font-size: 11px;
     line-height: 17px;
     text-align: center;
-    color: #fff;
-    background: var(--accent);
+    color: #ffffff;
+    background: #8b8bff;
     border-radius: 999px;
 }
 
-/* ============ 折叠面板 ============ */
-.np-panel {
-    max-width: var(--page-max);
+/* ============ 顶部：固定不滚动（玻璃主面） ============ */
+.np-header {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 1680px;
+    width: 100%;
     margin: 0 auto;
-    padding: 18px 24px 6px;
-    display: grid;
-    gap: 14px;
-    border-bottom: 1px solid var(--line-soft);
-    background-color: var(--main-bg);
+    padding: 12px 16px;
+    box-sizing: border-box;
+    border-radius: 18px 18px 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(18, 18, 20, 0.72);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
 }
 
+.np-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: none;
+}
+
+.np-brand__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #8b8bff;
+    box-shadow: 0 0 0 4px rgba(139, 139, 255, 0.14);
+}
+
+.np-title {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 650;
+    letter-spacing: 0.2px;
+    color: #e8e8ea;
+    white-space: nowrap;
+}
+
+/* 顶部搜索区：搜索框 + 搜索按钮 + 重置 */
+.np-searchbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    justify-content: flex-end;
+}
+
+/* ============ 搜索框 ============ */
 .np-search {
     position: relative;
     display: flex;
     align-items: center;
-    background: var(--bg-soft);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    transition: .18s;
+    flex: 1;
+    min-width: 0;
+    max-width: 460px;
+    background: rgba(28, 28, 32, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 14px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .np-search:focus-within {
-    border-color: var(--accent-line);
-    box-shadow: 0 0 0 3px var(--accent-soft);
+    border-color: rgba(139, 139, 255, 0.45);
+    box-shadow: 0 0 0 3px rgba(139, 139, 255, 0.14);
 }
 
 .np-search__icon {
-    margin-left: 14px;
-    color: var(--text-mute);
     flex: none;
+    margin-left: 12px;
+    color: #6b6b74;
 }
 
 .np-search__input {
     flex: 1;
-    padding: 11px 12px;
-    font-size: 14px;
-    color: var(--text);
+    min-width: 0;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    font-family: inherit;
+    color: #e8e8ea;
     background: transparent;
     border: none;
     outline: none;
 }
 
 .np-search__input::placeholder {
-    color: var(--text-mute);
+    color: #6b6b74;
 }
 
 .np-search__clear {
     margin-right: 8px;
     padding: 4px 8px;
     font-size: 12px;
-    color: var(--text-mute);
+    color: #6b6b74;
     background: transparent;
     border: none;
+    border-radius: 8px;
     cursor: pointer;
-    border-radius: 6px;
+    transition: color 0.18s ease, background 0.18s ease;
 }
 
 .np-search__clear:hover {
-    color: var(--text);
-    background: var(--bg-raise);
+    color: #e8e8ea;
+    background: rgba(40, 40, 46, 0.85);
+}
+
+.np-search-btn {
+    flex: none;
+}
+
+/* ============ 折叠标签栏（玻璃） ============ */
+.np-panel {
+    flex: none;
+    display: grid;
+    gap: 10px;
+    max-width: 1680px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 12px 16px;
+    box-sizing: border-box;
+    border-left: 1px solid rgba(255, 255, 255, 0.10);
+    border-right: 1px solid rgba(255, 255, 255, 0.10);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(18, 18, 20, 0.55);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    max-height: 40%;
+    overflow-y: auto;
+}
+
+.np-tags__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.np-tags__title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #9a9aa2;
+}
+
+.np-tags__total {
+    font-size: 11.5px;
+    color: #6b6b74;
+}
+
+.np-tags__close {
+    margin-left: auto;
+    padding: 2px 8px;
+    font-size: 12px;
+    color: #6b6b74;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 0.18s ease, background 0.18s ease;
+}
+
+.np-tags__close:hover {
+    color: #e8e8ea;
+    background: rgba(40, 40, 46, 0.85);
 }
 
 .np-tags {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    padding-bottom: 12px;
 }
 
-.np-tag {
-    padding: 5px 12px;
+/* 标签胶囊 + 数量角标 */
+.np-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px 5px 12px;
     font-size: 12.5px;
-    color: var(--text-dim);
-    background: var(--bg-soft);
-    border: 1px solid var(--line);
+    font-family: inherit;
+    color: #9a9aa2;
+    background: rgba(28, 28, 32, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.10);
     border-radius: 999px;
     cursor: pointer;
-    transition: .16s;
+    transition: color 0.18s ease, background 0.18s ease,
+        border-color 0.18s ease;
 }
 
-.np-tag:hover {
-    color: var(--text);
-    border-color: var(--accent-line);
+.np-chip:hover {
+    color: #e8e8ea;
+    border-color: rgba(139, 139, 255, 0.45);
+    background: rgba(40, 40, 46, 0.85);
 }
 
-.np-tag.is-on {
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-color: var(--accent-line);
+.np-chip.is-on {
+    color: #8b8bff;
+    background: rgba(139, 139, 255, 0.14);
+    border-color: rgba(139, 139, 255, 0.45);
     font-weight: 600;
+}
+
+/* 数量角标 */
+.np-chip__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 17px;
+    padding: 0 5px;
+    font-size: 10.5px;
+    font-weight: 500;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.10);
+    border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.18s ease, background 0.18s ease;
+}
+
+.np-chip.is-on .np-chip__count {
+    color: #ffffff;
+    background: rgba(139, 139, 255, 0.55);
 }
 
 /* 折叠动画 */
 .np-drop-enter-active,
 .np-drop-leave-active {
-    transition: opacity .2s, transform .2s;
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .np-drop-enter-from,
@@ -443,27 +665,42 @@ const pickKind = (kind: string) => {
     transform: translateY(-6px);
 }
 
-/* ============ 主体：侧栏 + 内容 ============ */
+/* ============ 主体两栏（玻璃大面） ============ */
 .np-body {
+    flex: 1;
+    min-height: 0;
     display: grid;
-    grid-template-columns: var(--side-w) minmax(0, 1fr);
-    gap: 32px;
-    max-width: var(--page-max);
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 22px;
+    max-width: 1680px;
+    width: 100%;
     margin: 0 auto;
-    padding: 26px 24px 72px;
-    background-color: var(--main-bg);
+    padding: 0 16px 16px;
+    box-sizing: border-box;
+    overflow: hidden;
+    border-left: 1px solid rgba(255, 255, 255, 0.10);
+    border-right: 1px solid rgba(255, 255, 255, 0.10);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 0 0 18px 18px;
+    background: rgba(18, 18, 20, 0.55);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: 0 12px 40px -16px rgba(0, 0, 0, 0.75),
+        inset 0 1px 0 rgba(255, 255, 255, 0.10);
 }
 
-/* 一级分类：竖向导航 */
+/* 一级分类侧栏 */
 .np-side {
     position: sticky;
-    top: 84px;
+    top: 0;
     align-self: start;
     display: flex;
     flex-direction: column;
     gap: 3px;
-    padding-right: 8px;
-    border-right: 1px solid var(--line-soft);
+    padding: 22px 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    max-height: 100%;
+    overflow-y: auto;
 }
 
 .np-cat {
@@ -472,38 +709,39 @@ const pickKind = (kind: string) => {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding: 9px 12px;
+    padding: 9px 12px 9px 16px;
     font-size: 13.5px;
-    color: var(--text-dim);
+    font-family: inherit;
+    color: #9a9aa2;
     background: transparent;
     border: none;
-    border-radius: 9px;
+    border-radius: 8px;
     cursor: pointer;
     text-align: left;
-    transition: .16s;
+    transition: color 0.18s ease, background 0.18s ease;
 }
 
 .np-cat::before {
     content: '';
     position: absolute;
-    left: -9px;
+    left: 0;
     top: 50%;
     width: 3px;
     height: 0;
-    background: var(--accent);
+    background: #8b8bff;
     border-radius: 2px;
     transform: translateY(-50%);
-    transition: height .2s;
+    transition: height 0.2s ease;
 }
 
 .np-cat:hover {
-    color: var(--text);
-    background: var(--bg-soft);
+    color: #e8e8ea;
+    background: rgba(28, 28, 32, 0.45);
 }
 
 .np-cat.is-on {
-    color: var(--text);
-    background: var(--accent-soft);
+    color: #e8e8ea;
+    background: rgba(139, 139, 255, 0.14);
     font-weight: 600;
 }
 
@@ -514,82 +752,119 @@ const pickKind = (kind: string) => {
 .np-cat__count {
     font-size: 11.5px;
     font-weight: 400;
-    color: var(--text-mute);
+    color: #6b6b74;
     font-variant-numeric: tabular-nums;
 }
 
 .np-cat.is-on .np-cat__count {
-    color: var(--accent);
+    color: #8b8bff;
 }
 
-/* 二级分类：分段 pill */
+/* 主内容：唯一滚动容器 */
+.np-main {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 22px 4px 56px 0;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.np-main::-webkit-scrollbar {
+    width: 8px;
+}
+
+.np-main::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+}
+
+.np-main::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.32);
+}
+
+/* 顶部锚点 */
+.np-anchor {
+    height: 0;
+    overflow: hidden;
+}
+
+/* 二级分类 pill（玻璃） */
 .np-kinds {
     display: inline-flex;
     flex-wrap: wrap;
     gap: 2px;
     padding: 8px;
     margin-bottom: 28px;
-    background: var(--bg-soft);
-    border: 1px solid var(--line);
+    background: rgba(28, 28, 32, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.10);
     border-radius: 11px;
-
+    backdrop-filter: blur(11px);
+    -webkit-backdrop-filter: blur(11px);
 }
 
 .np-kind {
-    padding: 3px 12px;
+    padding: 5px 12px;
     font-size: 12.5px;
-    color: var(--text-dim);
+    font-family: inherit;
+    color: #9a9aa2;
     background: transparent;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: .16s;
-    margin: 3px;
+    transition: color 0.18s ease, background 0.18s ease;
 }
 
 .np-kind:hover {
-    color: var(--text);
+    color: #e8e8ea;
+    background: rgba(40, 40, 46, 0.85);
 }
 
 .np-kind.is-on {
-    color: #fff;
-    background: var(--accent);
-    box-shadow: 0 2px 10px -2px var(--accent-line);
+    color: #ffffff;
+    background: #8b8bff;
+    box-shadow: 0 2px 10px -2px rgba(139, 139, 255, 0.35);
+    font-weight: 600;
 }
 
 /* 一级分类区块 */
 .np-section {
     margin-bottom: 40px;
-    scroll-margin-top: 90px;
+    scroll-margin-top: 16px;
 }
 
 .np-section__title {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin: 0 0 18px;
+    margin: 0 0 22px;
     font-size: 16px;
     font-weight: 650;
-    color: var(--text);
+    color: #e8e8ea;
 }
 
 .np-section__bar {
     width: 3px;
     height: 15px;
-    background: var(--accent);
+    background: #8b8bff;
     border-radius: 2px;
 }
 
 .np-section__count {
     font-size: 12px;
     font-weight: 400;
-    color: var(--text-mute);
+    color: #6b6b74;
 }
 
 /* 二级分类小节 */
 .np-sub {
-    margin-bottom: 26px;
-    scroll-margin-top: 90px;
+    margin-bottom: 28px;
+    scroll-margin-top: 16px;
 }
 
 .np-sub__title {
@@ -599,65 +874,52 @@ const pickKind = (kind: string) => {
     margin: 0 0 12px;
     font-size: 12.5px;
     font-weight: 600;
-    letter-spacing: .8px;
+    letter-spacing: 0.8px;
     text-transform: uppercase;
-    color: var(--text-dim);
+    color: #9a9aa2;
 }
 
 .np-sub__line {
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, var(--line), transparent);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent);
 }
 
 .np-sub__count {
     font-size: 11.5px;
     font-weight: 400;
-    color: var(--text-mute);
+    color: #6b6b74;
     font-variant-numeric: tabular-nums;
 }
 
-/* ============ 网格：卡片固定宽度，列数随屏幕增长 ============ */
+/* ============ 网格 ============ */
 .np-grid {
     display: grid;
-    /*
-     * 核心两行：
-     * 1) repeat(auto-fill, minmax(240px, 1fr))
-     *    仍然是「最少 240px、可拉伸」，但在宽容器下 1fr 会把卡片拉宽
-     * 2) 因此配合 n 列上限，用媒体查询在宽屏固定列数，卡片宽度保持稳定，
-     *    增加的是列数而不是卡片宽度
-     */
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 16px;
 }
 
-/* -------- 断点：逐级增加列数，而非拉宽卡片 -------- */
-
-/* ≥ 900px：3 列 */
 @media (min-width: 900px) {
     .np-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 18px;
+        gap: 16px;
     }
 }
 
-/* ≥ 1250px：4 列 */
 @media (min-width: 1250px) {
     .np-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 20px;
+        gap: 22px;
     }
 }
 
-/* ≥ 1600px：5 列 */
 @media (min-width: 1600px) {
     .np-grid {
         grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 20px;
+        gap: 22px;
     }
 }
 
-/* ≥ 1920px：6 列 */
 @media (min-width: 1920px) {
     .np-grid {
         grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -665,32 +927,100 @@ const pickKind = (kind: string) => {
     }
 }
 
+/* ============ 空状态 ============ */
 .np-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
     padding: 56px 0;
-    text-align: center;
-    color: var(--text-mute);
+    color: #6b6b74;
+}
+
+.np-empty__text {
+    margin: 0;
     font-size: 14px;
 }
 
-/* 响应式：窄屏侧栏转为横向滚动 */
+/* ============ 无障碍：键盘焦点可见 ============ */
+.np :focus-visible {
+    outline: 2px solid #8b8bff;
+    outline-offset: 2px;
+}
+
+/* 尊重减少动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+    .np-main {
+        scroll-behavior: auto;
+    }
+
+    .np *,
+    .np *::before,
+    .np *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
+
+/* ============ 响应式 ============ */
+@media (max-width: 1024px) {
+    .np {
+        padding: 28px;
+    }
+}
+
 @media (max-width: 720px) {
+    .np {
+        padding: 0;
+    }
+
+    .np-header {
+        flex-wrap: wrap;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        padding: 12px 16px;
+    }
+
+    .np-searchbar {
+        order: 3;
+        flex: 1 1 100%;
+        justify-content: stretch;
+    }
+
+    .np-search {
+        max-width: none;
+    }
+
+    .np-panel {
+        border-left: none;
+        border-right: none;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
     .np-body {
         grid-template-columns: 1fr;
-        gap: 18px;
-        padding: 18px 16px 56px;
+        gap: 0;
+        padding: 0 16px 16px;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        border-radius: 0;
+        box-shadow: none;
     }
 
     .np-side {
-        position: static;
         flex-direction: row;
         gap: 6px;
         overflow-x: auto;
-        padding: 0 0 12px;
+        overflow-y: hidden;
+        padding: 12px 0;
         border-right: none;
-        border-bottom: 1px solid var(--line-soft);
-        /* iOS 惯性滚动 */
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        max-height: none;
     }
 
     .np-side::-webkit-scrollbar {
@@ -698,8 +1028,8 @@ const pickKind = (kind: string) => {
     }
 
     .np-cat {
-        white-space: nowrap;
         flex: none;
+        white-space: nowrap;
     }
 
     .np-cat::before {
@@ -707,13 +1037,33 @@ const pickKind = (kind: string) => {
     }
 
     .np-cat.is-on {
-        border: 1px solid var(--accent-line);
+        border: 1px solid rgba(139, 139, 255, 0.45);
+    }
+
+    .np-main {
+        padding: 16px 0 40px;
+    }
+}
+
+/* ============ 打印 ============ */
+@media print {
+    .np {
+        height: auto;
+        overflow: visible;
+        padding: 0;
     }
 
     .np-header,
-    .np-panel {
-        padding-left: 16px;
-        padding-right: 16px;
+    .np-panel,
+    .np-side,
+    .np-kinds {
+        display: none;
+    }
+
+    .np-main {
+        height: auto;
+        overflow: visible;
+        padding: 0;
     }
 }
 </style>

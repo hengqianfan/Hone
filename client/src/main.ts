@@ -7,7 +7,6 @@ import router from './router'
 import './styles/index.scss'
 
 // 主题样式
-import './styles/theme/index.scss'
 import 'highlight.js/styles/github-dark.css'
 
 

@@ -9,30 +9,19 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      component: () => import('@/views/Home.vue'),
+      component: () => import('@/views/Articles.vue'),
       name: 'Home',
     },
-    {
-      path: '/boke',
-      component: () => import('@/views/HomeBoke.vue'),
-      name: 'HomeBoke',
-    },
+
     {
       path: '/articles',
-      component: () => import('@/views/ArticlesP.vue'),
+      component: () => import('@/views/Articles.vue'),
       name: 'Articles',
       meta: {
         title: '文章列表',
       },
     },
-    {
-      path: '/tags',
-      component: () => import('@/views/Tags.vue'),
-      name: 'Tags',
-      meta: {
-        title: '标签列表',
-      },
-    },
+
 
     {
       path: '/moments',
@@ -61,24 +50,14 @@ const router = createRouter({
     },
 
 
-
-
     {
       path: '/post/:slug',
       component: () => import('@/views/PostDetail.vue'),
 
 
     },
-    {
-      path: '/workbench',
-      component: () => import('@/views/HomeWorkbench.vue'),
-      name: 'HomeWorkbench',
-    },
-    {
-      path: '/character',
-      component: () => import('@/views/Character.vue'),
-      name: 'Character',
-    },
+
+
 
 
   ],

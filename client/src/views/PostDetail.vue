@@ -40,7 +40,7 @@
                             <i :class="`iconfont icon-${n}`"></i>
                         </div>
                     </div>
-                    <div class="sync-title">（ 已同步 ）</div>
+                    <div class="sync-title">（ 已同步平台 ）</div>
                 </div>
             </div>
         </header>
@@ -100,7 +100,8 @@ const heroStyle = computed(() => {
     if (cover) {
         const res = getImgURL(cover, 'cover')
         return {
-            backgroundImage: `linear-gradient(135deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.72)), url(${res})`,
+            backgroundImage: `url(${res})`,
+            opacity: 1
         }
     }
     return {
@@ -201,7 +202,7 @@ onBeforeRouteUpdate(async (to) => {
 
 <style scoped lang="scss">
 /* =========================
-   设计变量
+   设计变量（局部 SCSS 常量，不依赖外部主题变量）
 ========================= */
 $glass-bg: rgba(22, 22, 22, 0.55);
 $glass-bg-soft: rgba(32, 32, 32, 0.45);
@@ -210,6 +211,13 @@ $glass-border: rgba(255, 255, 255, 0.08);
 $glass-border-strong: rgba(255, 255, 255, 0.16);
 $glass-highlight: rgba(255, 255, 255, 0.12);
 $glass-blur: 18px;
+
+/* 黑色玻璃主题写死色值 */
+$panel-bg: rgba(0, 0, 0, 0.75);
+$hero-bg: #0d0d0d;
+$toc-bg: rgba(22, 22, 22, 0.55);
+$toc-fc: #d4d4d4;
+$toc-fc-active: #ffffff;
 
 $neo-text: #d4d4d4;
 $neo-text-dim: #8a8a8a;
@@ -275,20 +283,23 @@ $neo-accent: #e0e0e0;
    主面板
 ========================= */
 .post-detail {
+    z-index: 0;
     width: 900px;
     max-width: 100%;
-    margin: 0 auto;
-    padding-bottom: 200px;
+    margin: 60px auto;
+
+    // padding-bottom: 200px;
     border-radius: 30px;
     /* 保留圆角裁剪主面板自身的视觉效果 */
     overflow: hidden;
-    background: $glass-bg;
-    backdrop-filter: blur($glass-blur) saturate(140%);
-    -webkit-backdrop-filter: blur($glass-blur) saturate(140%);
+    // backdrop-filter: blur($glass-blur) saturate(140%);
+    // -webkit-backdrop-filter: blur($glass-blur) saturate(140%);
     border: 1px solid $glass-border;
     box-shadow:
         0 20px 60px rgba(0, 0, 0, 0.65),
         inset 0 1px 0 $glass-highlight;
+    // 为了和侧边栏保持距离让toc不被遮挡
+    transform: translateX(-30px);
 }
 
 /* =========================
@@ -303,19 +314,33 @@ $neo-accent: #e0e0e0;
     background-position: center;
     background-repeat: no-repeat;
     overflow: hidden;
-    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-        inset 0 0 36px rgba(0, 0, 0, 0.35);
+    // background-color: $hero-bg;
+    z-index: 0;
 
-
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg,
+                rgba(0, 0, 0, 0.1) 0%,
+                rgba(0, 0, 0, 0.2) 30%,
+                rgba(0, 0, 0, 0.3) 65%,
+                rgba(0, 0, 0, 0.4) 85%,
+                rgba(0, 0, 0, 0.5) 100%);
+    }
 
     .hero-inner {
         position: relative;
-        z-index: 1;
         width: 100%;
         padding: 32px 40px 28px;
         display: flex;
         flex-direction: column;
         gap: 14px;
+        z-index: 1;
+
     }
 
     .hero-meta-top {
@@ -347,6 +372,7 @@ $neo-accent: #e0e0e0;
         position: relative;
         padding-bottom: 14px;
         word-break: break-word;
+        z-index: 1;
 
         &::after {
             content: '';
@@ -425,6 +451,7 @@ $neo-accent: #e0e0e0;
             font-size: 12px;
             color: $neo-text-dim;
             padding-top: 0;
+            margin-top: 10px;
             text-align: center;
             justify-content: flex-end;
         }
@@ -468,6 +495,9 @@ $neo-accent: #e0e0e0;
 .content {
     position: relative;
     padding: 28px 30px 10px;
+    background: $panel-bg;
+    z-index: 100;
+
 }
 
 /* =========================
@@ -475,9 +505,10 @@ $neo-accent: #e0e0e0;
 ========================= */
 .toc {
     position: fixed;
-    top: 80px;
-    /* 900 宽正文右边缘 + 20px 间距 */
-    left: calc(50% + 450px + 20px);
+    top: 60px;
+    /* 900 宽正文右边缘 + 20px 间距（ 原设计 ） */
+    // 因利用 transform 移动了.post-detail ，所以不需再加上的间距了
+    left: calc(50% + 450px - 10px);
     width: 220px;
     max-width: 220px;
     max-height: calc(100vh - 100px);
@@ -486,9 +517,9 @@ $neo-accent: #e0e0e0;
     font-size: 12px;
     display: flex;
     flex-direction: column;
-    background: $glass-bg;
-    backdrop-filter: blur($glass-blur) saturate(140%);
-    -webkit-backdrop-filter: blur($glass-blur) saturate(140%);
+    background: $toc-bg;
+    backdrop-filter: blur($glass-blur);
+    -webkit-backdrop-filter: blur($glass-blur);
     border: 1px solid $glass-border;
     box-shadow:
         0 16px 40px rgba(0, 0, 0, 0.55),
@@ -516,27 +547,29 @@ $neo-accent: #e0e0e0;
     }
 
     .toc-item {
-        margin: 8px 0;
+        margin: 5px 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         padding: 2px 0;
 
+
         a {
-            color: $neo-text-dim;
+            color: $toc-fc;
+
             text-decoration: none;
             transition: color 0.2s ease;
             display: block;
         }
 
         a:hover {
-            color: $neo-accent;
+            color: $toc-fc-active;
         }
 
         &.is-active a {
-            color: #ffffff;
+            color: $toc-fc-active;
             font-weight: 600;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+
         }
     }
 

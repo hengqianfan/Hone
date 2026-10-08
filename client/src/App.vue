@@ -1,13 +1,26 @@
+<template>
+  <div id="app">
+    <GLoading ref="transitionRef" />
+    <GBackground />
+
+    <!-- <GPannel /> -->
+    <!-- <GCtrl /> -->
+    <GHub />
+    <router-view class="view"></router-view>
+
+
+  </div>
+</template>
+
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import LayoutBoke from './layouts/boke.vue'
-
-import { useThemeStore } from '@/stores/theme'
-import PageTransition from '@/components/PageTransition/index.vue'
+import GBackground from './components/GBackground/index.vue'
+import GHub from './components/GHub/index.vue'
+import GLoading from '@/components/GLoading/index.vue'
 import { registerOverlay } from '@/router'
 
-const transitionRef = ref<InstanceType<typeof PageTransition>>()
-const themeStore = useThemeStore()
+const transitionRef = ref<InstanceType<typeof GLoading>>()
+
 onMounted(() => {
 
   registerOverlay(transitionRef.value)
@@ -42,13 +55,6 @@ onMounted(() => {
 
 </script>
 
-<template>
-  <div id="app">
-    <PageTransition ref="transitionRef" />
-    <LayoutBoke />
-
-  </div>
-</template>
 
 <style lang="scss" scoped>
 #app {
@@ -59,6 +65,8 @@ onMounted(() => {
   background-size: cover;
   background-position: center;
 
-
+  .view {
+    z-index: 100;
+  }
 }
 </style>
