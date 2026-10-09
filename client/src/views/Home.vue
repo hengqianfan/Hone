@@ -30,9 +30,9 @@ interface Article {
 /* ============ 个人信息 ============ */
 const profile = {
     name: '衡千帆',
-    role: '技术爱好者 / 全球流动性人才',
+    role: '技术爱好者 / 流浪型宅男',
     location: '中国 · 云南',
-    bio: '嗨，欢迎进入我的个人博客 HONE',
+    bio: '嗨，欢迎浏览我的博客「 HONE 」',
     avatar: '', // 留空显示首字母
 };
 
@@ -62,15 +62,15 @@ const socials: SocialLink[] = [
 /* ============ 推荐项目 ============ */
 const projects: Project[] = [
     {
-        name: 'website-nav',
-        desc: '黑色玻璃风格的网站导航页，分类、标签、防抖搜索，纯前端零依赖。',
+        name: 'H-Engine',
+        desc: '个人管理系统',
         stars: 128,
         lang: 'Vue',
         href: 'https://github.com/your-handle/website-nav',
     },
     {
-        name: 'awesome-cli',
-        desc: '按需生成脚手架的 CLI 工具，支持插件化模板与多包管理。',
+        name: 'NiuZone',
+        desc: '基于 NVP-Local 的个人网络社区',
         stars: 76,
         lang: 'TypeScript',
         href: 'https://github.com/your-handle/awesome-cli',
@@ -337,8 +337,8 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 
 .pcard__avatar {
     flex: none;
-    width: 112px;
-    height: 112px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     overflow: hidden;
     display: grid;
@@ -364,12 +364,12 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
 }
 
 .pcard__name {
     margin: 0;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
     letter-spacing: 0.4px;
     color: #e8e8ea;
@@ -390,7 +390,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 .pcard__bio {
     margin: 0;
     font-size: 14px;
-    line-height: 1.75;
+    line-height: 1.5;
     color: #9a9aa2;
 }
 
