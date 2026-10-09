@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+// TODO: 引入你的倒计时组件
+import Countdown from '@/components/countdown/index.vue';
+import { countdowns } from '@/config/countdowns';
 
 /* ============ 类型 ============ */
 interface SocialLink {
@@ -16,12 +19,20 @@ interface Project {
     href: string;
 }
 
+interface Article {
+    title: string;
+    desc: string;
+    date: string;
+    tag: string;
+    href: string;
+}
+
 /* ============ 个人信息 ============ */
 const profile = {
     name: '衡千帆',
-    role: '前端工程师 / 全栈开发',
-    location: '中国 · 杭州',
-    bio: '把复杂的东西做简单，喜欢折腾构建工具与动效。',
+    role: '技术爱好者 / 全球流动性人才',
+    location: '中国 · 云南',
+    bio: '嗨，欢迎进入我的个人博客 HONE',
     avatar: '', // 留空显示首字母
 };
 
@@ -66,103 +77,176 @@ const projects: Project[] = [
     },
 ];
 
+/* ============ 推荐文章 ============ */
+const articles: Article[] = [
+    {
+        title: '用 Vue 3 + Vite 搭建个人博客',
+        desc: '从零搭建、路由、暗色主题与部署上线的完整流程。',
+        date: '2025-03-18',
+        tag: '前端',
+        href: 'https://your-blog.com/vue-blog',
+    },
+    {
+        title: 'CSS 玻璃拟态的 8 个细节',
+        desc: 'backdrop-filter、边框高光与性能取舍的实战笔记。',
+        date: '2025-02-06',
+        tag: 'CSS',
+        href: 'https://your-blog.com/glassmorphism',
+    },
+    {
+        title: 'TypeScript 类型体操入门',
+        desc: '条件类型、映射类型与 infer 的常见套路速查。',
+        date: '2025-01-21',
+        tag: 'TypeScript',
+        href: 'https://your-blog.com/ts-types',
+    },
+];
+
 /* ============ 计算属性 ============ */
 const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 </script>
 
 <template>
     <div class="card-page">
-        <!-- ============ 个人介绍卡片（头像在左，信息在右） ============ -->
-        <article class="pcard">
-            <div class="pcard__glow" aria-hidden="true" />
+        <div class="card-page__grid">
+            <!-- ============ 左列：个人卡片 + 倒计时卡片（竖向排布） ============ -->
+            <div class="card-page__left">
+                <!-- 个人介绍卡片 -->
+                <article class="pcard">
+                    <div class="pcard__glow" aria-hidden="true" />
 
-            <div class="pcard__main">
-                <!-- 左侧：头像 -->
-                <div class="pcard__avatar">
-                    <img v-if="profile.avatar" :src="profile.avatar" :alt="profile.name" />
-                    <span v-else class="pcard__avatar-text">{{ avatarText }}</span>
-                </div>
+                    <div class="pcard__main">
+                        <!-- 头像 -->
+                        <div class="pcard__avatar">
+                            <img v-if="profile.avatar" :src="profile.avatar" :alt="profile.name" />
+                            <span v-else class="pcard__avatar-text">{{ avatarText }}</span>
+                        </div>
 
-                <!-- 右侧：信息 -->
-                <div class="pcard__info">
-                    <header class="pcard__head">
-                        <h1 class="pcard__name">{{ profile.name }}</h1>
-                        <p class="pcard__role">{{ profile.role }}</p>
+                        <!-- 名字 + 角色 -->
+                        <header class="pcard__head">
+                            <h1 class="pcard__name">{{ profile.name }}</h1>
+                            <p class="pcard__role">{{ profile.role }}</p>
+                        </header>
+
+                        <p class="pcard__bio">{{ profile.bio }}</p>
+
+                        <p class="pcard__location">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" />
+                            </svg>
+                            {{ profile.location }}
+                        </p>
+
+                        <div class="pcard__socials">
+                            <a v-for="s in socials" :key="s.label" class="psocial" :href="s.href" target="_blank"
+                                rel="noopener noreferrer" :aria-label="s.label" :title="s.label">
+                                <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true">
+                                    <path :d="s.icon" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- 倒计时卡片：外层玻璃壳 + 你的 Countdown 组件 -->
+                <section class="card ccard" aria-label="倒计时">
+                    <header class="card__head">
+                        <span class="card__dot card__dot--warm" aria-hidden="true" />
+                        <span class="card__title">倒计时</span>
                     </header>
 
-                    <p class="pcard__bio">{{ profile.bio }}</p>
-
-                    <p class="pcard__location">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
-                            <path
-                                d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" />
-                        </svg>
-                        {{ profile.location }}
-                    </p>
-
-                    <div class="pcard__socials">
-                        <a v-for="s in socials" :key="s.label" class="psocial" :href="s.href" target="_blank"
-                            rel="noopener noreferrer" :aria-label="s.label" :title="s.label">
-                            <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true">
-                                <path :d="s.icon" />
-                            </svg>
-                        </a>
+                    <div class="ccard__body">
+                        <Countdown :list="countdowns" />
                     </div>
-                </div>
+                </section>
             </div>
 
-            <!-- ============ 卡内推荐项目（左右并排） ============ -->
-            <section class="pcard__projects" aria-label="推荐项目">
-                <header class="dock__head">
-                    <span class="dock__dot" aria-hidden="true" />
-                    <span class="dock__title">推荐项目</span>
-                </header>
+            <!-- ============ 右列：推荐项目 + 推荐文章 ============ -->
+            <div class="card-page__side">
+                <!-- 推荐项目卡片 -->
+                <section class="card card--projects" aria-label="推荐项目">
+                    <header class="card__head">
+                        <span class="card__dot" aria-hidden="true" />
+                        <span class="card__title">推荐项目</span>
+                    </header>
 
-                <ul class="dock__list">
-                    <li v-for="p in projects" :key="p.name" class="dock__item">
-                        <a class="dock__link" :href="p.href" target="_blank" rel="noopener noreferrer">
-                            <span class="dock__top">
-                                <span class="dock__icon" aria-hidden="true">
-                                    <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
-                                        <path
-                                            d="M4 4h6l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
-                                    </svg>
+                    <ul class="proj-list">
+                        <li v-for="p in projects" :key="p.name" class="proj-item">
+                            <a class="proj-link" :href="p.href" target="_blank" rel="noopener noreferrer">
+                                <span class="proj-top">
+                                    <span class="proj-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+                                            <path
+                                                d="M4 4h6l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                                        </svg>
+                                    </span>
+                                    <span class="proj-arrow" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="M7 17 17 7M9 7h8v8" />
+                                        </svg>
+                                    </span>
                                 </span>
-                                <span class="dock__arrow" aria-hidden="true">
+
+                                <span class="proj-name">{{ p.name }}</span>
+                                <span class="proj-desc">{{ p.desc }}</span>
+
+                                <span class="proj-meta">
+                                    <span class="proj-lang">
+                                        <i class="proj-lang-dot" aria-hidden="true" />
+                                        {{ p.lang }}
+                                    </span>
+                                    <span class="proj-star">
+                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"
+                                            aria-hidden="true">
+                                            <path
+                                                d="m12 17.27 6.18 3.73-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21l6.18-3.73Z" />
+                                        </svg>
+                                        {{ p.stars }}
+                                    </span>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                </section>
+
+                <!-- 推荐文章卡片 -->
+                <section class="card card--articles" aria-label="推荐文章">
+                    <header class="card__head">
+                        <span class="card__dot card__dot--alt" aria-hidden="true" />
+                        <span class="card__title">推荐文章</span>
+                    </header>
+
+                    <ul class="art-list">
+                        <li v-for="a in articles" :key="a.title" class="art-item">
+                            <a class="art-link" :href="a.href" target="_blank" rel="noopener noreferrer">
+                                <span class="art-main">
+                                    <span class="art-title">{{ a.title }}</span>
+                                    <span class="art-desc">{{ a.desc }}</span>
+                                    <span class="art-meta">
+                                        <span class="art-tag">{{ a.tag }}</span>
+                                        <span class="art-date">{{ a.date }}</span>
+                                    </span>
+                                </span>
+                                <span class="art-arrow" aria-hidden="true">
                                     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M7 17 17 7M9 7h8v8" />
                                     </svg>
                                 </span>
-                            </span>
-
-                            <span class="dock__name">{{ p.name }}</span>
-                            <span class="dock__desc">{{ p.desc }}</span>
-
-                            <span class="dock__meta">
-                                <span class="dock__lang">
-                                    <i class="dock__lang-dot" aria-hidden="true" />
-                                    {{ p.lang }}
-                                </span>
-                                <span class="dock__star">
-                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"
-                                        aria-hidden="true">
-                                        <path
-                                            d="m12 17.27 6.18 3.73-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21l6.18-3.73Z" />
-                                    </svg>
-                                    {{ p.stars }}
-                                </span>
-                            </span>
-                        </a>
-                    </li>
-                </ul>
-            </section>
-        </article>
+                            </a>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+        </div>
     </div>
 </template>
 
 <style lang="scss" scoped>
-/* ==================== 页面容器：整体居中 ==================== */
+/* ==================== 页面容器 ==================== */
 .card-page {
     color-scheme: dark;
     display: flex;
@@ -175,13 +259,45 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     -webkit-font-smoothing: antialiased;
 }
 
-/* ==================== 个人卡片：横向长方形 ==================== */
+/* 两列网格：左个人信息(+倒计时) / 右项目 + 文章
+   align-items: stretch（默认）让两列格子等高，这是「左右等高」的关键 */
+.card-page__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    gap: 24px;
+    width: 100%;
+    max-width: 980px;
+    align-items: stretch;
+}
+
+/* 左列：竖向 flex 容器，个人卡片 + 倒计时卡片 */
+.card-page__left {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+    height: 100%;
+    /* 撑满 grid 单元高度 */
+}
+
+.card-page__side {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+    height: 100%;
+}
+
+/* 关键：每列「最后一张卡片」吸收剩余高度，两列自然齐平 */
+.card-page__left> :last-child,
+.card-page__side> :last-child {
+    flex: 1 1 auto;
+}
+
+/* ==================== 个人卡片 ==================== */
 .pcard {
     position: relative;
-    width: 100%;
-    max-width: 780px;
-    /* 横向长方形 */
-    padding: 44px 48px 40px;
+    padding: 40px 34px 36px;
     border-radius: 28px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(18, 18, 20, 0.58);
@@ -209,19 +325,20 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     pointer-events: none;
 }
 
-/* ==================== 顶部主体：头像在左 + 信息在右 ==================== */
+/* 主体：头像 + 信息竖向排列居中 */
 .pcard__main {
     position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 30px;
+    gap: 20px;
+    text-align: center;
 }
 
-/* 头像：左侧，尺寸与左侧栏对齐 */
 .pcard__avatar {
     flex: none;
-    width: 108px;
-    height: 108px;
+    width: 112px;
+    height: 112px;
     border-radius: 50%;
     overflow: hidden;
     display: grid;
@@ -238,26 +355,16 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 }
 
 .pcard__avatar-text {
-    font-size: 40px;
+    font-size: 44px;
     font-weight: 700;
     color: #8b8bff;
 }
 
-/* 右侧信息区：左对齐，纵向分布 */
-.pcard__info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-}
-
 .pcard__head {
     display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 10px;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
 }
 
 .pcard__name {
@@ -270,6 +377,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 
 .pcard__role {
     display: inline-block;
+    margin: 0;
     padding: 4px 12px;
     font-size: 12px;
     letter-spacing: 0.3px;
@@ -280,7 +388,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 }
 
 .pcard__bio {
-    margin: 0 0 10px;
+    margin: 0;
     font-size: 14px;
     line-height: 1.75;
     color: #9a9aa2;
@@ -290,14 +398,16 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 0 0 16px;
+    margin: 0;
     font-size: 13px;
     color: #6b6b74;
 }
 
 .pcard__socials {
     display: flex;
+    justify-content: center;
     gap: 10px;
+    margin-top: 4px;
 }
 
 .psocial {
@@ -320,27 +430,47 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     transform: translateY(-3px);
 }
 
-/* ==================== 卡内推荐项目（左右并排） ==================== */
-.pcard__projects {
-    margin-top: 30px;
-    padding-top: 26px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+/* ==================== 通用卡片 ==================== */
+.card {
+    padding: 26px 24px 24px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(18, 18, 20, 0.58);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    box-shadow: 0 30px 70px -34px rgba(0, 0, 0, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: border-color 0.3s ease;
 }
 
-.dock__head {
+.card:hover {
+    border-color: rgba(139, 139, 255, 0.28);
+}
+
+.card__head {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
 }
 
-.dock__dot {
+.card__dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     background: #8b8bff;
     box-shadow: 0 0 9px 1px rgba(139, 139, 255, 0.75);
     animation: pulse 2s ease-in-out infinite;
+}
+
+.card__dot--alt {
+    background: #5ad1a5;
+    box-shadow: 0 0 9px 1px rgba(90, 209, 165, 0.75);
+}
+
+.card__dot--warm {
+    background: #ffb454;
+    box-shadow: 0 0 9px 1px rgba(255, 180, 84, 0.75);
 }
 
 @keyframes pulse {
@@ -355,25 +485,65 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     }
 }
 
-.dock__title {
+.card__title {
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 1.2px;
     color: #9a9aa2;
 }
 
-.dock__list {
+/* ==================== 倒计时卡片 ==================== */
+/* 与其他卡片一致的玻璃壳；做 flex 纵向布局，让 __body 吃掉剩余高度，
+   这样外层卡片被拉高时，组件区域也会跟着铺满 */
+.ccard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.ccard::before {
+    content: '';
+    position: absolute;
+    top: -120px;
+    left: 50%;
+    width: 380px;
+    height: 220px;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, rgba(255, 180, 84, 0.16), transparent 70%);
+    pointer-events: none;
+}
+
+.ccard__body {
+    position: relative;
+    flex: 1 1 auto;
+    /* 铺满卡片剩余高度 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(28, 28, 32, 0.72), rgba(22, 22, 26, 0.6));
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+}
+
+/* 如果 Countdown 组件自身没有暗色适配，可按需放开下面两条 */
+/* .ccard__body :deep(*) { color: #e8e8ea; } */
+/* .ccard__body:empty::after { content: '暂无倒计时'; color: #6b6b74; font-size: 13px; } */
+
+/* ==================== 推荐项目 ==================== */
+.proj-list {
     display: grid;
-    /* 关键：左右并排两列，不再一行一个 */
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
     list-style: none;
     margin: 0;
     padding: 0;
-    text-align: left;
 }
 
-.dock__link {
+.proj-link {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -388,21 +558,20 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
         transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.dock__link:hover {
+.proj-link:hover {
     border-color: rgba(139, 139, 255, 0.45);
     background: rgba(139, 139, 255, 0.1);
     transform: translateY(-3px);
     box-shadow: 0 14px 28px -18px rgba(0, 0, 0, 0.9);
 }
 
-/* 卡片顶行：图标 + 角标箭头 */
-.dock__top {
+.proj-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.dock__icon {
+.proj-icon {
     flex: none;
     display: grid;
     place-items: center;
@@ -415,18 +584,18 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     transition: background 0.2s ease, transform 0.2s ease;
 }
 
-.dock__link:hover .dock__icon {
+.proj-link:hover .proj-icon {
     background: rgba(139, 139, 255, 0.22);
     transform: scale(1.06);
 }
 
-.dock__name {
+.proj-name {
     font-size: 14.5px;
     font-weight: 650;
     color: #e8e8ea;
 }
 
-.dock__desc {
+.proj-desc {
     font-size: 12.5px;
     line-height: 1.6;
     color: #8b8b93;
@@ -437,7 +606,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     overflow: hidden;
 }
 
-.dock__meta {
+.proj-meta {
     display: inline-flex;
     align-items: center;
     gap: 12px;
@@ -447,27 +616,27 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     color: #6b6b74;
 }
 
-.dock__lang {
+.proj-lang {
     display: inline-flex;
     align-items: center;
     gap: 5px;
 }
 
-.dock__lang-dot {
+.proj-lang-dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
     background: #8b8bff;
 }
 
-.dock__star {
+.proj-star {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     color: #9a9aa2;
 }
 
-.dock__arrow {
+.proj-arrow {
     flex: none;
     display: grid;
     place-items: center;
@@ -477,10 +646,96 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
 }
 
-.dock__link:hover .dock__arrow {
+.proj-link:hover .proj-arrow {
     opacity: 1;
     transform: translate(0, 0);
     color: #8b8bff;
+}
+
+/* ==================== 推荐文章 ==================== */
+.art-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.art-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    text-decoration: none;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.art-link:hover {
+    border-color: rgba(90, 209, 165, 0.35);
+    background: rgba(90, 209, 165, 0.08);
+}
+
+.art-main {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    flex: 1;
+}
+
+.art-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8e8ea;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.art-desc {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: #8b8b93;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.art-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11.5px;
+    color: #6b6b74;
+}
+
+.art-tag {
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: #5ad1a5;
+    background: rgba(90, 209, 165, 0.12);
+    border: 1px solid rgba(90, 209, 165, 0.28);
+}
+
+.art-arrow {
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: #6b6b74;
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.art-link:hover .art-arrow {
+    opacity: 1;
+    transform: translate(0, 0);
+    color: #5ad1a5;
 }
 
 /* ==================== 无障碍 & 动效 ==================== */
@@ -492,73 +747,74 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 @media (prefers-reduced-motion: reduce) {
 
     .card-page *,
-    .dock__dot {
+    .card__dot {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
     }
 }
 
 /* ==================== 响应式 ==================== */
-@media (max-width: 640px) {
+@media (max-width: 900px) {
     .card-page {
         padding: 40px 16px;
+        align-items: flex-start;
+    }
+
+    /* 两列合并为单列：此时不再需要「等高」，重置高度继承与拉伸 */
+    .card-page__grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        max-width: 560px;
+    }
+
+    .card-page__left,
+    .card-page__side {
+        height: auto;
+    }
+
+    .card-page__left> :last-child,
+    .card-page__side> :last-child {
+        flex: 0 0 auto;
     }
 
     .pcard {
-        max-width: 100%;
-        padding: 30px 22px 26px;
+        padding: 32px 24px 28px;
         border-radius: 24px;
     }
 
-    /* 窄屏：头像与信息改为上下排列 */
-    .pcard__main {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 18px;
-    }
-
     .pcard__avatar {
-        width: 92px;
-        height: 92px;
+        width: 96px;
+        height: 96px;
     }
 
     .pcard__avatar-text {
-        font-size: 34px;
+        font-size: 38px;
     }
 
-    .pcard__info {
-        text-align: center;
-        align-items: center;
+    .card {
+        padding: 22px 18px 20px;
+        border-radius: 22px;
     }
+}
 
-    .pcard__head {
-        justify-content: center;
-    }
+@media (max-width: 480px) {
 
-    .pcard__socials {
-        justify-content: center;
-    }
-
-    .dock__head {
-        justify-content: center;
-    }
-
-    .pcard__projects {
-        margin-top: 24px;
-        padding-top: 20px;
-    }
-
-    /* 窄屏改为单列 */
-    .dock__list {
+    /* 窄屏项目改为单列 */
+    .proj-list {
         grid-template-columns: 1fr;
     }
 
-    .dock__link:hover {
+    .ccard__body {
+        padding: 14px 12px;
+    }
+
+    .proj-link:hover,
+    .psocial:hover {
         transform: none;
     }
 
-    .dock__arrow {
+    .proj-arrow,
+    .art-arrow {
         display: none;
     }
 }

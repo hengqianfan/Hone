@@ -51,8 +51,10 @@
         <!-- 内容 -->
         <div class="content">
             <template v-if="pagedPosts.length">
-                <CardPost v-for="post in pagedPosts" :key="post.slug" :post="post" />
-                <div v-for="n in emptyCells" :key="'empty-' + n" class="post-item-placeholder"></div>
+                <div v-for="post in pagedPosts" :key="post.slug" class="content-cell">
+                    <CardPost :post="post" />
+                </div>
+                <div v-for="n in emptyCells" :key="'empty-' + n" class="content-cell post-item-placeholder"></div>
             </template>
 
             <div v-else class="empty-state">
@@ -322,6 +324,10 @@ const emptyCells = computed(() => {
 
 $gap: 20px;
 
+/* 内容区列宽上限（配合固定 4 列，控制大屏下卡片不被拉得过宽） */
+$content-max-width: 1280px;
+$card-max-width: 320px;
+
 /* 筛选容器：玻璃胶囊 */
 $menu-bg: rgba(14, 16, 21, 0.5);
 $menu-border: rgba(255, 255, 255, 0.12);
@@ -371,9 +377,15 @@ $page-ring-active: rgba(79, 156, 255, 0.45);
     flex-direction: column;
     align-items: center;
 
+    /* 关键：限制整体宽度并居中，避免大屏被拉满 */
+    width: 100%;
+    max-width: $content-max-width;
+    margin-left: auto;
+    margin-right: auto;
     margin-top: 20px;
-    padding: 0 80px;
+
     position: relative;
+    box-sizing: border-box;
 }
 
 /* =========================================================
@@ -656,12 +668,11 @@ $page-ring-active: rgba(79, 156, 255, 0.45);
 }
 
 /* =========================================================
- * 内容区
+ * 内容区（方案一：固定 4 列 + 列宽上限 + 居中）
  * ========================================================= */
 
 .content {
     width: 100%;
-    max-width: 100%;
 
     margin-top: 24px;
     padding: 20px;
@@ -673,21 +684,30 @@ $page-ring-active: rgba(79, 156, 255, 0.45);
     -webkit-backdrop-filter: blur(22px) saturate(160%);
 
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    justify-items: stretch;
+    /* 固定 4 列，每列不超过 $card-max-width，超出部分由 justify-content 居中吸收 */
+    grid-template-columns: repeat(4, minmax(0, $card-max-width));
+    justify-content: center;
     align-items: stretch;
     gap: $gap;
-
-    :deep(.card-post),
-    >* {
-        width: 100%;
-        box-sizing: border-box;
-    }
+    box-sizing: border-box;
 
     @media (max-width: 768px) {
         grid-template-columns: repeat(1, minmax(0, 1fr));
         padding: 12px;
         gap: 16px;
+    }
+}
+
+/* 每个单元格：负责统一宽度与高度撑满，卡片本身无需再管宽度 */
+.content-cell {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+
+    :deep(.card-post),
+    >* {
+        width: 100%;
+        box-sizing: border-box;
     }
 }
 
@@ -819,6 +839,8 @@ $page-ring-active: rgba(79, 156, 255, 0.45);
 
 @media (max-width: 768px) {
     .articles-all {
+        width: 100%;
+        max-width: 100%;
         padding: 0 10px;
         border-radius: 10px;
     }

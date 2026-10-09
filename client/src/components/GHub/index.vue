@@ -2,84 +2,51 @@
     <Teleport to="body">
         <div class="ghub">
 
-            <!-- =========================
-                 Logo
-            ========================== -->
+            <!-- Logo -->
             <button class="ghub-logo" :class="{ 'is-open': isLogoPanelOpen }" type="button" aria-label="打开个人面板"
                 @click="toggleLogoPanel">
                 <img src="/favicon.ico" alt="logo" />
             </button>
 
-
-            <!-- =========================
-                 主导航按钮组
-            ========================== -->
+            <!-- 主导航按钮组 -->
             <nav class="ghub-nav">
-
                 <div v-for="item in navItems" :key="item.name" class="ghub-item" :class="{
                     active: isActive(item),
                     'has-children': !!item.children?.length,
                     'is-expanded': openedMenu === item.name
                 }">
-
                     <button class="ghub-button" type="button" :aria-label="item.label"
                         :aria-expanded="item.children?.length ? openedMenu === item.name : undefined"
                         @click="handleItemClick(item)">
                         <i :class="item.icon"></i>
-
-                        <!-- Tooltip：仅普通导航项 -->
-                        <span class="ghub-tooltip">
-                            {{ item.label }}
-                        </span>
+                        <span class="ghub-tooltip">{{ item.label }}</span>
                     </button>
 
-
-                    <!-- =========================
-                         子菜单（向左展开）
-                    ========================== -->
                     <Transition name="ghub-submenu">
                         <div v-if="item.children?.length && openedMenu === item.name" class="ghub-submenu" @click.stop>
-                            <div class="ghub-submenu-title">
-                                {{ item.label }}
-                            </div>
-
+                            <div class="ghub-submenu-title">{{ item.label }}</div>
                             <button v-for="child in item.children" :key="child.name" class="ghub-submenu-item"
                                 :class="{ active: isChildActive(child) }" type="button"
                                 @click="handleChildClick(child)">
                                 <i :class="child.icon"></i>
-
-                                <span>
-                                    {{ child.label }}
-                                </span>
-
+                                <span>{{ child.label }}</span>
                                 <i v-if="child.external" class="iconfont icon-link ghub-external"></i>
                             </button>
                         </div>
                     </Transition>
-
                 </div>
 
-
-                <!-- =========================
-                     设置按钮（按钮组内的最后一个 item）
-                ========================== -->
+                <!-- 设置按钮 -->
                 <div class="ghub-item">
                     <button class="ghub-button ghub-setting" :class="{ 'is-open': isSettingPanelOpen }" type="button"
                         aria-label="打开设置" @click="toggleSettingPanel">
                         <i class="iconfont icon-settings"></i>
-
-                        <span class="ghub-tooltip">
-                            设置
-                        </span>
+                        <span class="ghub-tooltip">设置</span>
                     </button>
                 </div>
-
             </nav>
 
-
-            <!-- =========================
-                 回到顶部
-            ========================== -->
+            <!-- 回到顶部 -->
             <div class="ghub-top-slot">
                 <Transition name="ghub-top">
                     <button v-if="showBackTop" class="ghub-top-button" type="button" aria-label="回到顶部"
@@ -92,24 +59,18 @@
         </div>
     </Teleport>
 
-
-    <!-- =========================
-         Logo 面板
-    ========================== -->
+    <!-- Logo 面板 -->
     <Teleport to="body">
         <Transition name="ghub-panel">
             <div v-if="isLogoPanelOpen" class="ghub-panel-mask" @click="closeLogoPanel" @mouseleave="closeLogoPanel">
                 <div class="ghub-panel" @click.stop>
-
                     <div class="ghub-panel-header">
                         <img src="/favicon.ico" alt="logo" class="ghub-panel-avatar" @click="goHome" />
-
                         <div class="ghub-panel-site">
                             <h3>界·衡千帆</h3>
                             <p>先完成，然后完美</p>
                         </div>
                     </div>
-
 
                     <div class="ghub-panel-profile">
                         <p>
@@ -122,27 +83,19 @@
                         <Countdown :list="countdowns" />
                     </div>
 
-
                     <div class="ghub-panel-socials">
                         <a v-for="item in socials" :key="item.name" :href="item.url" target="_blank"
                             rel="noopener noreferrer" :aria-label="item.name">
                             <i :class="item.icon"></i>
-
-                            <span>
-                                {{ item.name }}
-                            </span>
+                            <span>{{ item.name }}</span>
                         </a>
                     </div>
-
                 </div>
             </div>
         </Transition>
     </Teleport>
 
-
-    <!-- =========================
-         设置面板
-    ========================== -->
+    <!-- 设置面板 -->
     <Teleport to="body">
         <Transition name="ghub-panel">
             <div v-if="isSettingPanelOpen" class="ghub-panel-mask" @click="closeSettingPanel">
@@ -153,16 +106,12 @@
                         <h3>设置</h3>
                     </div>
 
-
-
                     <div class="ghub-setting-group">
                         <div class="ghub-setting-label">本地壁纸库</div>
 
                         <div class="ghub-setting-row">
                             <span>目录</span>
-                            <span class="ghub-setting-ellipsis">
-                                {{ dirName || '未选择' }}
-                            </span>
+                            <span class="ghub-setting-ellipsis">{{ dirName || '未选择' }}</span>
                         </div>
 
                         <div class="ghub-setting-row ghub-setting-actions">
@@ -170,8 +119,8 @@
                                 {{ hasDir ? '重新选择目录' : '选择本地文件夹' }}
                             </button>
 
-                            <button v-if="hasDir && !localList.length" type="button" class="ghub-setting-btn"
-                                @click="resumeLast">
+                            <!-- 只要记得目录就允许恢复，不受 localList 是否为空影响 -->
+                            <button v-if="hasDir" type="button" class="ghub-setting-btn" @click="resumeLast">
                                 继续使用上次目录
                             </button>
 
@@ -181,17 +130,10 @@
                         </div>
 
                         <div v-if="status" class="ghub-setting-tip">{{ status }}</div>
-
                     </div>
 
-
-                    <!-- =========================
-                         壁纸设置
-                    ========================== -->
                     <div class="ghub-setting-group">
-                        <div class="ghub-setting-label">
-                            壁纸
-                        </div>
+                        <div class="ghub-setting-label">壁纸</div>
 
                         <div class="ghub-setting-row">
                             <span>当前壁纸</span>
@@ -216,17 +158,8 @@
                         </div>
                     </div>
 
-
-                    <!-- =========================
-                         自动播放
-                    ========================== -->
                     <div class="ghub-setting-group">
-                        <div class="ghub-setting-label">
-                            自动播放
-                        </div>
-
-
-
+                        <div class="ghub-setting-label">自动播放</div>
                         <div class="ghub-setting-row">
                             <span>切换间隔（秒）</span>
                             <input v-model.number="playSpeed" class="ghub-setting-range" type="range" min="1" max="120"
@@ -235,23 +168,13 @@
                         </div>
                     </div>
 
-
-                    <!-- =========================
-                         动画
-                    ========================== -->
                     <div class="ghub-setting-group">
-                        <div class="ghub-setting-label">
-                            动画
-                        </div>
-
+                        <div class="ghub-setting-label">动画</div>
                         <label class="ghub-setting-row">
                             <span>减少动态效果</span>
                             <input v-model="reduceMotion" type="checkbox" />
                         </label>
                     </div>
-
-
-
 
                 </div>
             </div>
@@ -260,19 +183,12 @@
 </template>
 
 <script setup lang="ts">
-import {
-    onBeforeUnmount,
-    onMounted,
-    ref,
-    watch
-} from 'vue'
-
-import {
-    useRoute,
-    useRouter
-} from 'vue-router'
-
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useLocalWallpaper } from '@/utils/useLocalWallpaper'
+import Countdown from '@/components/countdown/index.vue'
+import { countdowns } from '@/config/countdowns'
+import { useBackgroundStore } from '@/stores/background'
 
 const {
     hasDir,
@@ -285,23 +201,11 @@ const {
     clearLocal,
 } = useLocalWallpaper()
 
-import Countdown from '@/components/countdown/index.vue'
-import { countdowns } from '@/config/countdowns'
-
-import { useBackgroundStore } from '@/stores/background'
-
-/* =========================================================
- * Router / Store
- * ========================================================= */
-
 const router = useRouter()
 const route = useRoute()
-
 const store = useBackgroundStore()
 
-/* =========================================================
- * 类型
- * ========================================================= */
+/* ---------------- 类型 ---------------- */
 
 interface GhubChild {
     name: string
@@ -320,40 +224,16 @@ interface GhubItem {
     children?: GhubChild[]
 }
 
-/* =========================================================
- * 导航配置
- * ========================================================= */
+/* ---------------- 导航配置 ---------------- */
 
 const navItems: GhubItem[] = [
-    {
-        name: 'home',
-        label: '首页',
-        icon: 'iconfont icon-home',
-        routeName: 'Home'
-    },
-    {
-        name: 'posts',
-        label: '文章',
-        icon: 'iconfont icon-book',
-        routeName: 'Articles'
-    },
-    {
-        name: 'sites',
-        label: '网站导航',
-        icon: 'iconfont icon-nav',
-        routeName: 'Sites'
-    },
-    {
-        name: 'life',
-        label: '生活',
-        icon: 'iconfont icon-life',
-        routeName: 'Moments'
-    },
+    { name: 'home', label: '首页', icon: 'iconfont icon-home', routeName: 'Home' },
+    { name: 'posts', label: '文章', icon: 'iconfont icon-book', routeName: 'Articles' },
+    { name: 'sites', label: '网站导航', icon: 'iconfont icon-nav', routeName: 'Sites' },
+    { name: 'life', label: '生活', icon: 'iconfont icon-life', routeName: 'Moments' },
 ]
 
-/* =========================================================
- * 社交链接
- * ========================================================= */
+/* ---------------- 社交链接 ---------------- */
 
 interface Social {
     name: string
@@ -362,26 +242,12 @@ interface Social {
 }
 
 const socials: Social[] = [
-    {
-        name: 'GitHub',
-        icon: 'iconfont icon-github',
-        url: 'https://github.com'
-    },
-    {
-        name: 'Bilibili',
-        icon: 'iconfont icon-bilibili',
-        url: 'https://www.bilibili.com'
-    },
-    {
-        name: 'Email',
-        icon: 'iconfont icon-email',
-        url: 'mailto:you@example.com'
-    }
+    { name: 'GitHub', icon: 'iconfont icon-github', url: 'https://github.com' },
+    { name: 'Bilibili', icon: 'iconfont icon-bilibili', url: 'https://www.bilibili.com' },
+    { name: 'Email', icon: 'iconfont icon-email', url: 'mailto:you@example.com' },
 ]
 
-/* =========================================================
- * Logo 面板
- * ========================================================= */
+/* ---------------- Logo 面板 ---------------- */
 
 const isLogoPanelOpen = ref(false)
 
@@ -392,20 +258,14 @@ const openLogoPanel = () => {
 }
 
 const toggleLogoPanel = () => {
-    if (isLogoPanelOpen.value) {
-        isLogoPanelOpen.value = false
-    } else {
-        openLogoPanel()
-    }
+    isLogoPanelOpen.value = !isLogoPanelOpen.value
 }
 
 const closeLogoPanel = () => {
     isLogoPanelOpen.value = false
 }
 
-/* =========================================================
- * 设置面板
- * ========================================================= */
+/* ---------------- 设置面板 ---------------- */
 
 const isSettingPanelOpen = ref(false)
 
@@ -416,136 +276,81 @@ const openSettingPanel = () => {
 }
 
 const toggleSettingPanel = () => {
-    if (isSettingPanelOpen.value) {
-        isSettingPanelOpen.value = false
-    } else {
-        openSettingPanel()
-    }
+    isSettingPanelOpen.value = !isSettingPanelOpen.value
 }
 
 const closeSettingPanel = () => {
     isSettingPanelOpen.value = false
 }
 
-/* =========================================================
- * 设置项
- * ========================================================= */
+/* ---------------- 设置项 ---------------- */
 
-/** 壁纸自动播放间隔（秒） */
 const playSpeed = ref(store.playSpeed)
 
 watch(playSpeed, value => {
     store.playSpeed = value
 })
 
-/** 减少动态效果 */
 const reduceMotion = ref(false)
 
 watch(reduceMotion, value => {
     document.documentElement.classList.toggle('reduce-motion', value)
 })
 
-
-
-
-/* =========================================================
- * 子菜单
- * ========================================================= */
+/* ---------------- 子菜单 ---------------- */
 
 const openedMenu = ref<string | null>(null)
 
 const toggleMenu = (item: GhubItem) => {
-    if (!item.children?.length) {
-        return
-    }
-
-    openedMenu.value =
-        openedMenu.value === item.name
-            ? null
-            : item.name
+    if (!item.children?.length) return
+    openedMenu.value = openedMenu.value === item.name ? null : item.name
 }
 
-/* =========================================================
- * 导航点击
- * ========================================================= */
+/* ---------------- 导航点击 ---------------- */
 
 const handleItemClick = (item: GhubItem) => {
     if (item.children?.length) {
         toggleMenu(item)
         return
     }
-
     if (item.routeName) {
-        router.push({
-            name: item.routeName
-        })
-
+        router.push({ name: item.routeName })
         openedMenu.value = null
     }
 }
-
-/* =========================================================
- * 子菜单点击
- * ========================================================= */
 
 const handleChildClick = (child: GhubChild) => {
     if (child.external && child.url) {
-        window.open(
-            child.url,
-            '_blank',
-            'noopener,noreferrer'
-        )
-
+        window.open(child.url, '_blank', 'noopener,noreferrer')
         return
     }
-
     if (child.routeName) {
-        router.push({
-            name: child.routeName
-        })
-
+        router.push({ name: child.routeName })
         openedMenu.value = null
     }
 }
 
-/* =========================================================
- * 判断当前路由
- * ========================================================= */
+/* ---------------- 路由判断 ---------------- */
 
 const isActive = (item: GhubItem) => {
-    if (item.routeName) {
-        return route.name === item.routeName
-    }
-
+    if (item.routeName) return route.name === item.routeName
     if (item.children?.length) {
-        return item.children.some(
-            child => child.routeName === route.name
-        )
+        return item.children.some(child => child.routeName === route.name)
     }
-
     return false
 }
 
-const isChildActive = (child: GhubChild) => {
-    return !!child.routeName &&
-        route.name === child.routeName
-}
+const isChildActive = (child: GhubChild) =>
+    !!child.routeName && route.name === child.routeName
 
-/* =========================================================
- * 首页
- * ========================================================= */
+/* ---------------- 首页 ---------------- */
 
 const goHome = () => {
-    router.push({
-        name: 'Home'
-    })
-
+    router.push({ name: 'Home' })
     closeLogoPanel()
 }
 
-/* =========================================================
- * 回到顶部
- * ========================================================= */
+/* ---------------- 回到顶部 ---------------- */
 
 const showBackTop = ref(false)
 
@@ -554,102 +359,73 @@ const checkScroll = () => {
 }
 
 const backToTop = () => {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-/* =========================================================
- * 点击页面其他位置
- * ========================================================= */
+/* ---------------- 全局事件 ---------------- */
 
 const onDocumentClick = (event: MouseEvent) => {
     const target = event.target as HTMLElement | null
-
-    if (!target) {
-        return
-    }
-
-    if (!target.closest('.ghub')) {
+    if (!target) return
+    if (!target.closest('.ghub') && !target.closest('.ghub-panel')) {
         openedMenu.value = null
     }
 }
 
-/* =========================================================
- * ESC
- * ========================================================= */
-
 const onKeydown = (event: KeyboardEvent) => {
-    if (event.key !== 'Escape') {
-        return
-    }
-
+    if (event.key !== 'Escape') return
     openedMenu.value = null
     isLogoPanelOpen.value = false
     isSettingPanelOpen.value = false
 }
 
-/* =========================================================
- * 生命周期
- * ========================================================= */
+/* ---------------- 生命周期 ---------------- */
 
-onMounted(() => {
-    window.addEventListener(
-        'scroll',
-        checkScroll,
-        {
-            passive: true
-        }
-    )
-
-    document.addEventListener(
-        'click',
-        onDocumentClick
-    )
-
-    window.addEventListener(
-        'keydown',
-        onKeydown
-    )
+onMounted(async () => {
+    window.addEventListener('scroll', checkScroll, { passive: true })
+    document.addEventListener('click', onDocumentClick)
+    window.addEventListener('keydown', onKeydown)
 
     checkScroll()
 
-    // 静默尝试恢复上次目录（不弹授权框）
-    tryRestore()
+    // 恢复上次目录句柄（静默，不弹授权框）
+    await tryRestore()
+
+    // 恢复完成后把结果同步给 store
+    if (localList.value.length) {
+        store.clearLocalWallpapers()
+        store.addLocalWallpapers(localList.value)
+    }
 })
 
+/**
+ * 本地列表变化 → 同步 store
+ * 先清空再合并，避免重新扫描时旧 blob 被再次 revoke / 重复叠加
+ */
 watch(
     () => localList.value,
     list => {
+        // store 中若已是同一批 blob，则无需反复清空重建
+        const sameLength = store.localWallpapers.length === list.length
+        const sameIds =
+            sameLength &&
+            list.every((item, i) => store.localWallpapers[i]?.id === item.id)
+
+        if (sameIds) return
+
         store.clearLocalWallpapers()
         if (list.length) store.addLocalWallpapers(list)
-    },
-    { deep: false }
+    }
 )
+
 onBeforeUnmount(() => {
-    window.removeEventListener(
-        'scroll',
-        checkScroll
-    )
-
-    document.removeEventListener(
-        'click',
-        onDocumentClick
-    )
-
-    window.removeEventListener(
-        'keydown',
-        onKeydown
-    )
-
-    // 注意：这里不要 releaseAll()，否则离开组件会回收 blob，
-    // 而壁纸是全站共享的，会导致壁纸失效。
+    window.removeEventListener('scroll', checkScroll)
+    document.removeEventListener('click', onDocumentClick)
+    window.removeEventListener('keydown', onKeydown)
+    // 不 releaseAll()：壁纸全站共享，组件卸载不应回收 blob
 })
 
-/* =========================================================
- * 路由变化后关闭菜单
- * ========================================================= */
+/* ---------------- 路由变化关闭菜单 ---------------- */
 
 watch(
     () => route.fullPath,
@@ -658,6 +434,10 @@ watch(
     }
 )
 </script>
+
+<style lang="scss" scoped>
+/* 样式与原文件完全一致，此处略 —— 你原有的 <style> 原样保留即可 */
+</style>
 
 
 <style lang="scss" scoped>

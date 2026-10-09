@@ -128,7 +128,7 @@ const onIconError = (e: Event) => {
 $post-radius: 16px;
 $post-line-height: 24px;
 $post-icon-size: 28px;
-$post-card-width: 300px;
+$post-card-width: 290px;
 
 .post {
     box-sizing: border-box;

@@ -1,3 +1,4 @@
+// src/stores/background.ts
 import { computed, ref, shallowRef, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { wallpapers } from '@/config/wallpaper'
@@ -26,6 +27,15 @@ export const useBackgroundStore = defineStore('background', () => {
 
     /* ---------------- 本地壁纸 ---------------- */
 
+    /**
+     * 直接替换整份本地列表（配合 useLocalWallpaper 的「扫描即替换」语义）。
+     * 旧列表的 blob 由 useLocalWallpaper.releaseAll 统一负责回收，这里不做 revoke，
+     * 避免同一 URL 被 revoke 两次导致后续壁纸失效。
+     */
+    const setLocalWallpapers = (items: LocalWallpaperItem[]) => {
+        localWallpapers.value = [...items]
+    }
+
     const addLocalWallpapers = (items: LocalWallpaperItem[]) => {
         localWallpapers.value = [...localWallpapers.value, ...items]
     }
@@ -37,7 +47,7 @@ export const useBackgroundStore = defineStore('background', () => {
     }
 
     const clearLocalWallpapers = () => {
-        localWallpapers.value.forEach(w => URL.revokeObjectURL(w.url))
+        // 这里只清引用，blob 回收交给 useLocalWallpaper.releaseAll，避免重复 revoke
         localWallpapers.value = []
     }
 
@@ -46,12 +56,13 @@ export const useBackgroundStore = defineStore('background', () => {
     const backgrounds = computed(() => {
         const builtin = backgroundList.value.map(item => ({
             ...item,
-            isLocal: false,
+            isLocal: false as const,
             url: resolveUrl(item.url),
         }))
+        // 本地项 url 已经是 blob:，直接用，不再走 resolveUrl
         const local = localWallpapers.value.map(item => ({
             ...item,
-            url: resolveUrl(item.url),
+            url: item.url,
         }))
         return [...builtin, ...local]
     })
@@ -67,7 +78,6 @@ export const useBackgroundStore = defineStore('background', () => {
         currentIndex.value = index
     }
 
-    /** 按对象设置（本地库缩略图点击用，避免 index 错位） */
     const setCurrentWallpaper = (item: { id?: string; name?: string }) => {
         const idx = backgrounds.value.findIndex(
             b => (item.id && (b as any).id === item.id) || b.name === item.name
@@ -75,7 +85,6 @@ export const useBackgroundStore = defineStore('background', () => {
         if (idx >= 0) currentIndex.value = idx
     }
 
-    /** 轮换时跳过固定 */
     const nextBackground = () => {
         if (pinned.value) return
         const length = backgrounds.value.length
@@ -103,12 +112,10 @@ export const useBackgroundStore = defineStore('background', () => {
         pinned.value = !pinned.value
     }
 
-    /** 固定状态持久化 */
     watch(pinned, v => localStorage.setItem('wallpaper-pinned', String(v)), {
         immediate: false,
     })
 
-    // 初始化读取
     if (localStorage.getItem('wallpaper-pinned') === 'true') {
         pinned.value = true
     }
@@ -132,6 +139,7 @@ export const useBackgroundStore = defineStore('background', () => {
         unpin,
         togglePin,
         // 本地库
+        setLocalWallpapers,
         addLocalWallpapers,
         removeLocalWallpaper,
         clearLocalWallpapers,
