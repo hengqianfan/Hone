@@ -4,12 +4,39 @@ import { CATEGORIES, type CategoryId, type Site } from '@/types/site';
 import { sites } from '@/config/sites';
 import SiteCard from '@/components/CardSiteP/index.vue';
 
+/* ============ ⓪ 星标分组 ============ */
+/** 星标分组的伪分类 id（不参与 CATEGORIES，仅用于侧栏/锚点） */
+const PIN_ID = 'pin';
+const ALL_ID = 'all';
+type NavId = CategoryId | typeof ALL_ID | typeof PIN_ID;
+
+/** 统一的渲染分组结构（真实分类与星标分组共用） */
+interface NavSubGroup {
+    kind: string;
+    items: Site[];
+}
+interface NavGroup {
+    id: string;
+    name: string;
+    items: Site[];
+    subGroups: NavSubGroup[];
+}
+
+/** 有星标（pin > 0）的站点：pin 大的在前，相同按名称 */
+const pinnedSites = computed<Site[]>(() =>
+    sites
+        .filter((s) => typeof s.pin === 'number' && s.pin > 0)
+        .slice()
+        .sort((a, b) => (b.pin as number) - (a.pin as number) || a.name.localeCompare(b.name)),
+);
+
 /* ============ ① 基础状态 ============ */
 const keyword = ref('');
 const debouncedKeyword = ref('');
-const activeId = ref<CategoryId | 'all'>('all');
+/** 当前选中：'all' | 'pin' | 真实分类 id */
+const activeId = ref<NavId>(ALL_ID);
 /** 当前选中的二级分类：'all' | kind 名 */
-const activeKind = ref<string>('all');
+const activeKind = ref<string>(ALL_ID);
 /** 标签栏是否展开（默认收起，点击搜索/输入关键词时展开） */
 const tagsOpen = ref(false);
 /** 选中的标签（多选） */
@@ -23,7 +50,6 @@ let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 watch(keyword, (v) => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => (debouncedKeyword.value = v), 200);
-    // 搜索时自动显示标签栏
     if (v) tagsOpen.value = true;
 });
 onBeforeUnmount(() => clearTimeout(debounceTimer));
@@ -35,17 +61,11 @@ const openSearch = () => {
 };
 
 /* ============ ③ 标签池（带同标签数量统计） ============ */
-/**
- * 统计口径：一个站点若同时命中 kind 与 tags 中的同名标签，只计一次。
- * 数量基于「关键词过滤后的结果集」，因此会随搜索实时变化。
- */
 const allTags = computed(() => {
     const map = new Map<string, number>();
-
     const kw = debouncedKeyword.value.trim().toLowerCase();
 
     sites.forEach((s) => {
-        // 关键词预过滤：让标签数量与当前搜索结果保持一致
         if (kw) {
             const hit =
                 s.name.toLowerCase().includes(kw) ||
@@ -54,7 +74,6 @@ const allTags = computed(() => {
             if (!hit) return;
         }
 
-        // 该站点涉及的标签集合（去重，避免 kind 与 tags 同名重复计数）
         const names = new Set<string>();
         if (s.kind) names.add(s.kind);
         (s.tags ?? []).forEach((t) => t && names.add(t));
@@ -66,8 +85,7 @@ const allTags = computed(() => {
 
     return [...map.entries()]
         .map(([tag, count]) => ({ tag, count }))
-        // 数量多的靠前，数量相同按字典序
-        .sort((a, b) => (b.count - a.count) || a.tag.localeCompare(b.tag));
+        .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 });
 
 /** 标签总数（标签栏头部展示） */
@@ -79,20 +97,20 @@ const toggleTag = (tag: string) => {
     } else {
         activeTags.value = [...activeTags.value, tag];
     }
-    activeKind.value = 'all';
+    activeKind.value = ALL_ID;
 };
 
 const clearTags = () => {
     activeTags.value = [];
-    activeKind.value = 'all';
+    activeKind.value = ALL_ID;
 };
 
 const resetAll = () => {
     keyword.value = '';
     debouncedKeyword.value = '';
     activeTags.value = [];
-    activeKind.value = 'all';
-    activeId.value = 'all';
+    activeKind.value = ALL_ID;
+    activeId.value = ALL_ID;
 };
 
 const hasFilter = computed(
@@ -121,6 +139,14 @@ const filtered = computed<Site[]>(() => {
     return list;
 });
 
+/** 过滤后的星标站点（筛选时星标只显示命中的） */
+const filteredPinned = computed<Site[]>(() =>
+    filtered.value
+        .filter((s) => typeof s.pin === 'number' && s.pin > 0)
+        .slice()
+        .sort((a, b) => (b.pin as number) - (a.pin as number) || a.name.localeCompare(b.name)),
+);
+
 /* ============ ⑤ 计数预聚合 ============ */
 const countMap = computed(() => {
     const map = new Map<string, number>();
@@ -131,8 +157,11 @@ const countMap = computed(() => {
 });
 const countOf = (id: CategoryId) => countMap.value.get(id) ?? 0;
 
+/** 星标分组的数量（按当前筛选结果） */
+const pinCount = computed(() => filteredPinned.value.length);
+
 /* ============ ⑥ 二级分组 ============ */
-const buildSubGroups = (list: Site[]) => {
+const buildSubGroups = (list: Site[]): NavSubGroup[] => {
     const map = new Map<string, Site[]>();
     list.forEach((s) => {
         if (!map.has(s.kind)) map.set(s.kind, []);
@@ -141,18 +170,48 @@ const buildSubGroups = (list: Site[]) => {
     return [...map.entries()].map(([kind, items]) => ({ kind, items }));
 };
 
-const groups = computed(() =>
+const groups = computed<NavGroup[]>(() =>
     CATEGORIES.map((cat) => {
         const items = filtered.value.filter((s) => s.categoryId === cat.id);
-        return { ...cat, items, subGroups: buildSubGroups(items) };
+        return {
+            id: cat.id as string,
+            name: cat.name,
+            items,
+            subGroups: buildSubGroups(items),
+        };
     }),
 );
 
-const visibleGroups = computed(() =>
-    activeId.value === 'all'
-        ? groups.value
-        : groups.value.filter((g) => g.id === activeId.value),
-);
+/**
+ * 当前可见的一级分组：
+ * - 'all'：只返回真实分类，星标**不再**插入「全部」视图
+ * - PIN_ID：只返回星标分组（结构与普通分类对齐，便于统一渲染）
+ * - 其他：过滤出对应分类
+ */
+const visibleGroups = computed<NavGroup[]>(() => {
+    if (activeId.value === PIN_ID) {
+        return filteredPinned.value.length
+            ? [
+                {
+                    id: PIN_ID,
+                    name: '星标',
+                    items: filteredPinned.value,
+                    subGroups: [],
+                },
+            ]
+            : [];
+    }
+    if (activeId.value === ALL_ID) {
+        return groups.value;
+    }
+    return groups.value.filter((g) => g.id === (activeId.value as string));
+});
+
+/** 是否为星标分组（模板中比较统一走这里，避免字面量收窄报错） */
+const isPinGroup = (group: NavGroup) => group.id === PIN_ID;
+
+/** 是否为「全部」分类 */
+const isAllId = (id: NavId) => id === ALL_ID;
 
 const kindOptions = computed(() => {
     const set = new Set<string>();
@@ -163,20 +222,20 @@ const kindOptions = computed(() => {
 });
 
 watch(kindOptions, (opts) => {
-    if (activeKind.value !== 'all' && !opts.includes(activeKind.value)) {
-        activeKind.value = 'all';
+    if (activeKind.value !== ALL_ID && !opts.includes(activeKind.value)) {
+        activeKind.value = ALL_ID;
     }
 });
 
-const renderedGroups = computed(() =>
+const renderedGroups = computed<NavGroup[]>(() =>
     visibleGroups.value
         .map((g) => ({
             ...g,
             subGroups: g.subGroups.filter(
-                (sub) => activeKind.value === 'all' || sub.kind === activeKind.value,
+                (sub) => activeKind.value === ALL_ID || sub.kind === activeKind.value,
             ),
         }))
-        .filter((g) => g.subGroups.length > 0),
+        .filter((g) => g.subGroups.length > 0 || g.items.length > 0),
 );
 
 /* ============ ⑦ 内部滚动定位 ============ */
@@ -194,16 +253,23 @@ const scrollTo = (id: string) => {
     container.scrollTo({ top, behavior: 'smooth' });
 };
 
-const pickCategory = (id: CategoryId | 'all') => {
+/** 一级分类下的「全部类型」定位锚点：星标 → cat-pin，其余 → cat-xxx */
+const categoryAnchor = (id: NavId) => {
+    if (id === ALL_ID) return 'nav-top';
+    if (id === PIN_ID) return 'cat-pin';
+    return `cat-${id as string}`;
+};
+
+const pickCategory = (id: NavId) => {
     activeId.value = id;
-    activeKind.value = 'all';
-    scrollTo('nav-top');
+    activeKind.value = ALL_ID;
+    scrollTo(categoryAnchor(id));
 };
 
 const pickKind = (kind: string) => {
     activeKind.value = kind;
-    if (kind === 'all') {
-        scrollTo(activeId.value === 'all' ? 'nav-top' : `cat-${activeId.value}`);
+    if (kind === ALL_ID) {
+        scrollTo(categoryAnchor(activeId.value));
     } else {
         scrollTo(`kind-${kind}`);
     }
@@ -281,6 +347,17 @@ const pickKind = (kind: string) => {
                     <span class="np-cat__name">全部</span>
                     <span class="np-cat__count">{{ filtered.length }}</span>
                 </button>
+
+                <!-- 星标：伪装成一级分类，仅在侧栏出现 -->
+                <button v-if="pinCount" class="np-cat np-cat--pin" type="button" :aria-pressed="activeId === PIN_ID"
+                    :class="{ 'is-on': activeId === PIN_ID }" @click="pickCategory(PIN_ID)">
+                    <span class="np-cat__name">
+                        <span class="np-cat__star" aria-hidden="true">★</span>
+                        星标
+                    </span>
+                    <span class="np-cat__count">{{ pinCount }}</span>
+                </button>
+
                 <button v-for="cat in CATEGORIES" :key="cat.id" class="np-cat" type="button"
                     :aria-pressed="activeId === cat.id" :class="{ 'is-on': activeId === cat.id }"
                     @click="pickCategory(cat.id)">
@@ -305,24 +382,33 @@ const pickKind = (kind: string) => {
                     </button>
                 </div>
 
-                <section v-for="group in renderedGroups" :id="`cat-${group.id}`" :key="group.id" class="np-section">
+                <section v-for="group in renderedGroups" :id="`cat-${group.id}`" :key="group.id" class="np-section"
+                    :class="{ 'np-section--pin': group.id === PIN_ID }">
                     <h2 class="np-section__title">
                         <span class="np-section__bar" aria-hidden="true" />
+                        <span v-if="group.id === PIN_ID" class="np-section__star" aria-hidden="true">★</span>
                         {{ group.name }}
                         <span class="np-section__count">{{ group.items.length }}</span>
                     </h2>
 
-                    <div v-for="sub in group.subGroups" :id="`kind-${sub.kind}`" :key="sub.kind" class="np-sub">
-                        <h3 class="np-sub__title">
-                            {{ sub.kind }}
-                            <span class="np-sub__line" aria-hidden="true" />
-                            <span class="np-sub__count">{{ sub.items.length }}</span>
-                        </h3>
-
-                        <div class="np-grid">
-                            <SiteCard v-for="site in sub.items" :key="site.name" :site="site" />
-                        </div>
+                    <!-- 星标分组：直接铺卡片，不再拆二级分类 -->
+                    <div v-if="group.id === PIN_ID" class="np-grid">
+                        <SiteCard v-for="site in group.items" :key="site.name" :site="site" />
                     </div>
+
+                    <template v-else>
+                        <div v-for="sub in group.subGroups" :id="`kind-${sub.kind}`" :key="sub.kind" class="np-sub">
+                            <h3 class="np-sub__title">
+                                {{ sub.kind }}
+                                <span class="np-sub__line" aria-hidden="true" />
+                                <span class="np-sub__count">{{ sub.items.length }}</span>
+                            </h3>
+
+                            <div class="np-grid">
+                                <SiteCard v-for="site in sub.items" :key="site.name" :site="site" />
+                            </div>
+                        </div>
+                    </template>
                 </section>
 
                 <div v-if="!renderedGroups.length" class="np-empty">
@@ -749,6 +835,16 @@ const pickKind = (kind: string) => {
     height: 18px;
 }
 
+.np-cat__name {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .np-cat__count {
     font-size: 11.5px;
     font-weight: 400;
@@ -758,6 +854,25 @@ const pickKind = (kind: string) => {
 
 .np-cat.is-on .np-cat__count {
     color: #8b8bff;
+}
+
+/* 星标分类：金色星星强调，与普通分类做区分 */
+.np-cat--pin .np-cat__star {
+    color: #ffd166;
+    font-size: 13px;
+    line-height: 1;
+}
+
+.np-cat--pin.is-on {
+    background: rgba(255, 209, 102, 0.12);
+}
+
+.np-cat--pin.is-on::before {
+    background: #ffd166;
+}
+
+.np-cat--pin.is-on .np-cat__count {
+    color: #ffd166;
 }
 
 /* 主内容：唯一滚动容器 */
@@ -788,8 +903,9 @@ const pickKind = (kind: string) => {
     background: rgba(255, 255, 255, 0.32);
 }
 
-/* 顶部锚点 */
+/* 顶部锚点（星标分组锚点也用这类，零高度不占位） */
 .np-anchor {
+    display: block;
     height: 0;
     overflow: hidden;
 }
@@ -853,6 +969,17 @@ const pickKind = (kind: string) => {
     height: 15px;
     background: #8b8bff;
     border-radius: 2px;
+}
+
+/* 星标分组标题：金色星星与色条 */
+.np-section--pin .np-section__bar {
+    background: #ffd166;
+}
+
+.np-section__star {
+    color: #ffd166;
+    font-size: 14px;
+    line-height: 1;
 }
 
 .np-section__count {
@@ -1038,6 +1165,10 @@ const pickKind = (kind: string) => {
 
     .np-cat.is-on {
         border: 1px solid rgba(139, 139, 255, 0.45);
+    }
+
+    .np-cat--pin.is-on {
+        border-color: rgba(255, 209, 102, 0.45);
     }
 
     .np-main {

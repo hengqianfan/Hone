@@ -1,4 +1,5 @@
 import type { Site } from '@/types/site';
+
 export const sites: Site[] = [
     // ---------- 001 编程世界 ----------
     {
@@ -9,16 +10,17 @@ export const sites: Site[] = [
         desc: '全球最大的代码托管与开源协作平台',
         tags: ['github', 'git', '开源'],
         link: 'https://github.com',
+        pin: 1000,
     },
 
     {
-        name: 'VitePress',
+        name: 'Iconfont',
         categoryId: '001',
-        kind: '技术文档',
-        icon: 'vitepress',
-        desc: '由 Vite 和 Vue 驱动的静态站点生成器，适合快速搭建文档站点',
-        tags: ['静态站点', 'Vite', 'Vue'],
-        link: 'https://vitepress.dev/',
+        kind: '设计资源',
+        icon: 'iconfont',
+        desc: '阿里巴巴矢量图标库，国内最大的图标与插画资源平台',
+        tags: ['图标', '设计资源', '矢量'],
+        link: 'https://www.iconfont.cn/',
     },
 
     {
@@ -42,13 +44,13 @@ export const sites: Site[] = [
     },
 
     {
-        name: 'Iconfont',
+        name: 'V2EX',
         categoryId: '001',
-        kind: '设计资源',
-        icon: 'iconfont',
-        desc: '阿里巴巴矢量图标库，国内最大的图标与插画资源平台',
-        tags: ['图标', '设计资源', '矢量'],
-        link: 'https://www.iconfont.cn/',
+        kind: '社区论坛',
+        icon: 'v2ex',
+        desc: '一个小论坛',
+        tags: ['论坛'],
+        link: 'https://edge.v2ex.com/',
     },
 
     {
@@ -61,13 +63,13 @@ export const sites: Site[] = [
     },
 
     {
-        name: 'V2EX',
+        name: 'VitePress',
         categoryId: '001',
-        kind: '社区论坛',
-        icon: 'v2ex',
-        desc: '一个小论坛',
-        tags: ['论坛'],
-        link: 'https://edge.v2ex.com/',
+        kind: '技术文档',
+        icon: 'vitepress',
+        desc: '由 Vite 和 Vue 驱动的静态站点生成器，适合快速搭建文档站点',
+        tags: ['静态站点', 'Vite', 'Vue'],
+        link: 'https://vitepress.dev/',
     },
     // ---------- 002 人工智能 ----------
     {
@@ -81,6 +83,16 @@ export const sites: Site[] = [
     },
 
     {
+        name: 'Cursor',
+        categoryId: '002',
+        kind: 'AI IDE',
+        icon: 'cursor',
+        desc: '比较前期的ai IDE',
+        tags: ['ai', 'IDE'],
+        link: 'https://cursor.com/',
+    },
+
+    {
         name: 'Deepseek',
         categoryId: '002',
         kind: '对话模型',
@@ -88,16 +100,6 @@ export const sites: Site[] = [
         desc: '由深度求索公司打造的 AI 助手',
         tags: ['ai', '大模型', '深度求索'],
         link: 'https://www.deepseek.com/',
-    },
-
-    {
-        name: 'GPT',
-        categoryId: '002',
-        kind: '对话模型',
-        icon: 'openai',
-        desc: '人工智能的里程碑',
-        tags: ['ai', '大模型', 'openai'],
-        link: 'https://chatgpt.com/',
     },
 
     {
@@ -111,6 +113,16 @@ export const sites: Site[] = [
     },
 
     {
+        name: 'GPT',
+        categoryId: '002',
+        kind: '对话模型',
+        icon: 'openai',
+        desc: '人工智能的里程碑',
+        tags: ['ai', '大模型', 'openai'],
+        link: 'https://chatgpt.com/',
+    },
+
+    {
         name: 'WorkBuddy',
         categoryId: '002',
         kind: '对话模型',
@@ -118,16 +130,6 @@ export const sites: Site[] = [
         desc: '腾讯旗下的AI工作台',
         tags: ['大模型', 'ai'],
         link: 'https://www.workbuddy.ai/app',
-    },
-
-    {
-        name: 'Cursor',
-        categoryId: '002',
-        kind: 'AI IDE',
-        icon: 'cursor',
-        desc: '比较前期的ai IDE',
-        tags: ['ai', 'IDE'],
-        link: 'https://cursor.com/',
     },
     // ---------- 003 视频音乐 ----------
     {
@@ -138,26 +140,16 @@ export const sites: Site[] = [
         desc: '长视频平台',
         tags: ['弹幕', '二次元', '教程'],
         link: 'https://www.bilibili.com/',
+        pin: 999,
     },
 
     {
-        name: 'YouTube',
+        name: '袋鼠电影',
         categoryId: '003',
-        kind: '综合类',
-        icon: 'youtube',
-        desc: '全球最大的视频分享平台，提供海量视频观看与上传服务',
-        tags: ['视频', '影音娱乐', '流媒体'],
-        link: 'https://www.youtube.com/',
-    },
-
-    {
-        name: '落雪音乐',
-        categoryId: '003',
-        kind: '音乐',
-        icon: 'music',
-        desc: '神级音乐播放软件',
-        tags: ['开源', '音乐'],
-        link: 'https://lxmusic.toside.cn/',
+        kind: '影视资源',
+        desc: '无',
+        tags: ['资源'],
+        link: 'https://dsystv.com/',
     },
 
     {
@@ -171,6 +163,25 @@ export const sites: Site[] = [
     },
 
     {
+        name: '红果短剧',
+        categoryId: '003',
+        kind: '短视频',
+        desc: '抖音2.0 ，电子鸦片',
+        tags: ['短剧', '短视频'],
+        link: 'https://hongguoduanju.com/',
+    },
+
+    {
+        name: '落雪音乐',
+        categoryId: '003',
+        kind: '音乐',
+        icon: 'music',
+        desc: '神级音乐播放软件',
+        tags: ['开源', '音乐'],
+        link: 'https://lxmusic.toside.cn/',
+    },
+
+    {
         name: '落雪音乐音源',
         categoryId: '003',
         kind: '音乐',
@@ -180,22 +191,22 @@ export const sites: Site[] = [
     },
 
     {
-        name: '袋鼠电影',
+        name: 'YouTube',
         categoryId: '003',
-        kind: '影视资源',
-        desc: '无',
-        tags: ['资源'],
-        link: 'https://dsystv.com/',
+        kind: '综合类',
+        icon: 'youtube',
+        desc: '全球最大的视频分享平台，提供海量视频观看与上传服务',
+        tags: ['视频', '影音娱乐', '流媒体'],
+        link: 'https://www.youtube.com/',
     },
     // ---------- 004 游戏世界 ----------
     {
-        name: 'Steam',
+        name: '金铲铲之战',
         categoryId: '004',
-        kind: '游戏平台',
-        icon: 'steam',
-        desc: '全球最大的数字游戏发行与社区平台',
-        tags: ['游戏平台', '游戏', 'steam'],
-        link: 'https://store.steampowered.com/',
+        kind: '游戏官网',
+        desc: '腾讯旗下的热门自走棋游戏',
+        tags: ['腾讯', '游戏'],
+        link: 'https://jcc.qq.com/',
     },
 
     {
@@ -209,22 +220,6 @@ export const sites: Site[] = [
     },
 
     {
-        name: '金铲铲之战',
-        categoryId: '004',
-        kind: '游戏官网',
-        desc: '腾讯旗下的热门自走棋游戏',
-        tags: ['腾讯', '游戏'],
-        link: 'https://jcc.qq.com/',
-    },
-    {
-        name: '小黑盒',
-        categoryId: '004',
-        kind: '游戏社区',
-        desc: '近年来比较有规模的综合性游戏社区',
-        tags: ['游戏', '社区'],
-        link: 'https://xiaoheihe.cn/',
-    },
-    {
         name: '千岛',
         categoryId: '004',
         kind: '交易平台',
@@ -233,7 +228,24 @@ export const sites: Site[] = [
         link: 'https://qiandao.com/',
     },
 
+    {
+        name: '小黑盒',
+        categoryId: '004',
+        kind: '游戏社区',
+        desc: '近年来比较有规模的综合性游戏社区',
+        tags: ['游戏', '社区'],
+        link: 'https://xiaoheihe.cn/',
+    },
 
+    {
+        name: 'Steam',
+        categoryId: '004',
+        kind: '游戏平台',
+        icon: 'steam',
+        desc: '全球最大的数字游戏发行与社区平台',
+        tags: ['游戏平台', '游戏', 'steam'],
+        link: 'https://store.steampowered.com/',
+    },
     // ---------- 005 博客网站 ----------
     {
         name: '罗磊的独立博客',
@@ -245,6 +257,16 @@ export const sites: Site[] = [
     },
     // ---------- 006 软件工具 ----------
     {
+        name: '低价机场',
+        categoryId: '006',
+        kind: '网络工具',
+        icon: 'vpn',
+        desc: '备用，防止失联',
+        tags: ['vpn'],
+        link: 'https://xn--6nq0hk9tdjr.site/#/dashboard',
+    },
+
+    {
         name: '赔钱机场',
         categoryId: '006',
         kind: '网络工具',
@@ -255,13 +277,13 @@ export const sites: Site[] = [
     },
 
     {
-        name: '低价机场',
+        name: 'Google',
         categoryId: '006',
-        kind: '网络工具',
-        icon: 'vpn',
-        desc: '备用，防止失联',
-        tags: ['vpn'],
-        link: 'https://xn--6nq0hk9tdjr.site/#/dashboard',
+        kind: '搜索工具',
+        icon: 'google',
+        desc: '世界级搜索引擎，互联网巨头',
+        tags: ['谷歌', 'google', '搜索引擎', '互联网巨头'],
+        link: 'https://www.google.com/',
     },
 
     {
@@ -294,16 +316,6 @@ export const sites: Site[] = [
     },
     // ---------- 009 论坛资讯 ----------
     {
-        name: '知乎',
-        categoryId: '009',
-        kind: '知识社区',
-        icon: 'zhihu',
-        desc: '老牌知识论坛',
-        tags: ['社区', '知识'],
-        link: 'https://www.zhihu.com/',
-    },
-
-    {
         name: '新浪微博',
         categoryId: '009',
         kind: '新闻资讯',
@@ -311,6 +323,16 @@ export const sites: Site[] = [
         desc: '即将成为时代的眼泪',
         tags: ['微博', '咨询'],
         link: 'https://weibo.com/',
+    },
+
+    {
+        name: '知乎',
+        categoryId: '009',
+        kind: '知识社区',
+        icon: 'zhihu',
+        desc: '老牌知识论坛',
+        tags: ['社区', '知识'],
+        link: 'https://www.zhihu.com/',
     },
 
     {

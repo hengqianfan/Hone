@@ -176,6 +176,20 @@
                         </label>
                     </div>
 
+                    <!-- 新增：站点管理入口 -->
+                    <div class="ghub-setting-group">
+                        <div class="ghub-setting-label">站点管理</div>
+
+                        <div class="ghub-setting-row ghub-setting-actions">
+                            <button type="button" class="ghub-setting-nav" @click="goSitesManage">
+                                <i class="iconfont icon-nav"></i>
+                                <span>前往站点管理</span>
+                                <i class="iconfont icon-link ghub-external"></i>
+                            </button>
+                        </div>
+                    </div>
+
+
                 </div>
             </div>
         </Transition>
@@ -255,6 +269,19 @@ const openLogoPanel = () => {
     isLogoPanelOpen.value = true
     isSettingPanelOpen.value = false
     openedMenu.value = null
+}
+
+
+/* ---------------- 设置面板内的跳转 ---------------- */
+
+const goSitesManage = () => {
+    // 用 path 跳转；若路由有 name，可改成 router.push({ name: 'SitesManage' })
+    if (route.path === '/sitesManage') {
+        closeSettingPanel()
+        return
+    }
+    router.push({ path: '/sitesManage' })
+    closeSettingPanel()
 }
 
 const toggleLogoPanel = () => {
@@ -1556,6 +1583,61 @@ $ghub-z: 1000;
 
     &:hover {
         background: rgba(79, 156, 255, 0.3);
+    }
+}
+
+/* 设置面板内的跳转按钮（占满整行） */
+.ghub-setting-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    width: 100%;
+
+    padding: 9px 12px;
+
+    border: 1px solid $ghub-active-border;
+    border-radius: 8px;
+
+    background: $ghub-active-bg;
+    color: $ghub-active;
+
+    font-size: 13px;
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+
+    >i:first-child {
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    >span {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .ghub-external {
+        opacity: 0.55;
+        font-size: 12px !important;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: rgba(79, 156, 255, 0.3);
+        color: $ghub-text-strong;
+        transform: translateX(-2px);
+    }
+
+    &:active {
+        transform: scale(0.98);
     }
 }
 
