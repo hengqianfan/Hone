@@ -5,12 +5,10 @@ import { sites } from '@/config/sites';
 import SiteCard from '@/components/CardSiteP/index.vue';
 
 /* ============ ⓪ 星标分组 ============ */
-/** 星标分组的伪分类 id（不参与 CATEGORIES，仅用于侧栏/锚点） */
 const PIN_ID = 'pin';
 const ALL_ID = 'all';
 type NavId = CategoryId | typeof ALL_ID | typeof PIN_ID;
 
-/** 统一的渲染分组结构（真实分类与星标分组共用） */
 interface NavSubGroup {
     kind: string;
     items: Site[];
@@ -22,7 +20,6 @@ interface NavGroup {
     subGroups: NavSubGroup[];
 }
 
-/** 有星标（pin > 0）的站点：pin 大的在前，相同按名称 */
 const pinnedSites = computed<Site[]>(() =>
     sites
         .filter((s) => typeof s.pin === 'number' && s.pin > 0)
@@ -33,16 +30,11 @@ const pinnedSites = computed<Site[]>(() =>
 /* ============ ① 基础状态 ============ */
 const keyword = ref('');
 const debouncedKeyword = ref('');
-/** 当前选中：'all' | 'pin' | 真实分类 id */
-const activeId = ref<NavId>(ALL_ID);
-/** 当前选中的二级分类：'all' | kind 名 */
-const activeKind = ref<string>(ALL_ID);
-/** 标签栏是否展开（默认收起，点击搜索/输入关键词时展开） */
+const activeId = ref<NavId>(PIN_ID);
+const activeKind = ref<string>(PIN_ID);
 const tagsOpen = ref(false);
-/** 选中的标签（多选） */
 const activeTags = ref<string[]>([]);
 
-/* 搜索框引用，便于点击「搜索」按钮时聚焦 */
 const searchInput = ref<HTMLInputElement | null>(null);
 
 /* ============ ② 搜索防抖 ============ */
@@ -54,13 +46,12 @@ watch(keyword, (v) => {
 });
 onBeforeUnmount(() => clearTimeout(debounceTimer));
 
-/* 点击「搜索」：展开标签栏并聚焦输入框 */
 const openSearch = () => {
     tagsOpen.value = true;
     searchInput.value?.focus();
 };
 
-/* ============ ③ 标签池（带同标签数量统计） ============ */
+/* ============ ③ 标签池 ============ */
 const allTags = computed(() => {
     const map = new Map<string, number>();
     const kw = debouncedKeyword.value.trim().toLowerCase();
@@ -88,7 +79,6 @@ const allTags = computed(() => {
         .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 });
 
-/** 标签总数（标签栏头部展示） */
 const tagTotalCount = computed(() => allTags.value.length);
 
 const toggleTag = (tag: string) => {
@@ -139,7 +129,6 @@ const filtered = computed<Site[]>(() => {
     return list;
 });
 
-/** 过滤后的星标站点（筛选时星标只显示命中的） */
 const filteredPinned = computed<Site[]>(() =>
     filtered.value
         .filter((s) => typeof s.pin === 'number' && s.pin > 0)
@@ -157,7 +146,6 @@ const countMap = computed(() => {
 });
 const countOf = (id: CategoryId) => countMap.value.get(id) ?? 0;
 
-/** 星标分组的数量（按当前筛选结果） */
 const pinCount = computed(() => filteredPinned.value.length);
 
 /* ============ ⑥ 二级分组 ============ */
@@ -182,12 +170,6 @@ const groups = computed<NavGroup[]>(() =>
     }),
 );
 
-/**
- * 当前可见的一级分组：
- * - 'all'：只返回真实分类，星标**不再**插入「全部」视图
- * - PIN_ID：只返回星标分组（结构与普通分类对齐，便于统一渲染）
- * - 其他：过滤出对应分类
- */
 const visibleGroups = computed<NavGroup[]>(() => {
     if (activeId.value === PIN_ID) {
         return filteredPinned.value.length
@@ -207,10 +189,7 @@ const visibleGroups = computed<NavGroup[]>(() => {
     return groups.value.filter((g) => g.id === (activeId.value as string));
 });
 
-/** 是否为星标分组（模板中比较统一走这里，避免字面量收窄报错） */
 const isPinGroup = (group: NavGroup) => group.id === PIN_ID;
-
-/** 是否为「全部」分类 */
 const isAllId = (id: NavId) => id === ALL_ID;
 
 const kindOptions = computed(() => {
@@ -218,24 +197,43 @@ const kindOptions = computed(() => {
     visibleGroups.value.forEach((g) =>
         g.subGroups.forEach((sub) => set.add(sub.kind)),
     );
-    return [...set];
+    return [...set].sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
 });
 
-watch(kindOptions, (opts) => {
-    if (activeKind.value !== ALL_ID && !opts.includes(activeKind.value)) {
-        activeKind.value = ALL_ID;
-    }
+/* 切换一级分类 / 筛选条件变化时，立即校正二级选中项 */
+watch(
+    kindOptions,
+    (opts) => {
+        if (activeKind.value !== ALL_ID && !opts.includes(activeKind.value)) {
+            activeKind.value = ALL_ID;
+        }
+    },
+    { flush: 'sync' },
+);
+
+/* 切换一级分类时强制归位二级选中（双保险） */
+watch(activeId, () => {
+    activeKind.value = ALL_ID;
 });
 
 const renderedGroups = computed<NavGroup[]>(() =>
     visibleGroups.value
         .map((g) => ({
             ...g,
-            subGroups: g.subGroups.filter(
-                (sub) => activeKind.value === ALL_ID || sub.kind === activeKind.value,
-            ),
+            // 只有真正命中当前 kind 的小节才保留，避免“分组标题在、内容空”的残留
+            subGroups:
+                activeKind.value === ALL_ID
+                    ? g.subGroups
+                    : g.subGroups.filter((sub) => sub.kind === activeKind.value),
         }))
-        .filter((g) => g.subGroups.length > 0 || g.items.length > 0),
+        .filter((g) => {
+            // 星标分组没有 subGroups，按 items 判断
+            if (g.id === PIN_ID) return g.items.length > 0;
+            // 选了具体 kind：必须有对应小节才渲染该分组
+            if (activeKind.value !== ALL_ID) return g.subGroups.length > 0;
+            // 选了“全部类型”：有任意小节或任意 item 才渲染
+            return g.subGroups.length > 0 || g.items.length > 0;
+        }),
 );
 
 /* ============ ⑦ 内部滚动定位 ============ */
@@ -253,7 +251,6 @@ const scrollTo = (id: string) => {
     container.scrollTo({ top, behavior: 'smooth' });
 };
 
-/** 一级分类下的「全部类型」定位锚点：星标 → cat-pin，其余 → cat-xxx */
 const categoryAnchor = (id: NavId) => {
     if (id === ALL_ID) return 'nav-top';
     if (id === PIN_ID) return 'cat-pin';
@@ -278,14 +275,12 @@ const pickKind = (kind: string) => {
 
 <template>
     <div class="np">
-        <!-- 顶部栏：固定不滚动 -->
         <header class="np-header">
             <div class="np-brand">
                 <span class="np-brand__dot" aria-hidden="true" />
                 <h1 class="np-title">网站导航</h1>
             </div>
 
-            <!-- 常驻搜索框 -->
             <div class="np-searchbar">
                 <div class="np-search">
                     <svg class="np-search__icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
@@ -312,7 +307,6 @@ const pickKind = (kind: string) => {
             </div>
         </header>
 
-        <!-- 可折叠：标签栏（默认收起，点击搜索 / 输入关键词时显示） -->
         <transition name="np-drop">
             <div v-show="tagsOpen" id="np-panel" class="np-panel">
                 <div class="np-tags__head">
@@ -339,16 +333,9 @@ const pickKind = (kind: string) => {
             </div>
         </transition>
 
-        <!-- 可滚动主体：侧栏固定 + 右侧卡片滚动 -->
         <div class="np-body">
             <aside class="np-side" aria-label="一级分类">
-                <button class="np-cat" type="button" :aria-pressed="activeId === 'all'"
-                    :class="{ 'is-on': activeId === 'all' }" @click="pickCategory('all')">
-                    <span class="np-cat__name">全部</span>
-                    <span class="np-cat__count">{{ filtered.length }}</span>
-                </button>
-
-                <!-- 星标：伪装成一级分类，仅在侧栏出现 -->
+                <!-- ① 星标置顶：放在「全部」之上 -->
                 <button v-if="pinCount" class="np-cat np-cat--pin" type="button" :aria-pressed="activeId === PIN_ID"
                     :class="{ 'is-on': activeId === PIN_ID }" @click="pickCategory(PIN_ID)">
                     <span class="np-cat__name">
@@ -356,6 +343,12 @@ const pickKind = (kind: string) => {
                         星标
                     </span>
                     <span class="np-cat__count">{{ pinCount }}</span>
+                </button>
+
+                <button class="np-cat" type="button" :aria-pressed="activeId === 'all'"
+                    :class="{ 'is-on': activeId === 'all' }" @click="pickCategory('all')">
+                    <span class="np-cat__name">全部</span>
+                    <span class="np-cat__count">{{ filtered.length }}</span>
                 </button>
 
                 <button v-for="cat in CATEGORIES" :key="cat.id" class="np-cat" type="button"
@@ -366,7 +359,6 @@ const pickKind = (kind: string) => {
                 </button>
             </aside>
 
-            <!-- 主内容：唯一的滚动容器 -->
             <main ref="scrollContainer" class="np-main">
                 <div id="nav-top" class="np-anchor" aria-hidden="true" />
 
@@ -391,7 +383,6 @@ const pickKind = (kind: string) => {
                         <span class="np-section__count">{{ group.items.length }}</span>
                     </h2>
 
-                    <!-- 星标分组：直接铺卡片，不再拆二级分类 -->
                     <div v-if="group.id === PIN_ID" class="np-grid">
                         <SiteCard v-for="site in group.items" :key="site.name" :site="site" />
                     </div>
@@ -448,7 +439,6 @@ const pickKind = (kind: string) => {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* ============ 通用按钮 ============ */
 .np-btn {
     display: inline-flex;
     align-items: center;
@@ -508,7 +498,6 @@ const pickKind = (kind: string) => {
     border-radius: 999px;
 }
 
-/* ============ 顶部：固定不滚动（玻璃主面） ============ */
 .np-header {
     flex: none;
     display: flex;
@@ -553,7 +542,6 @@ const pickKind = (kind: string) => {
     white-space: nowrap;
 }
 
-/* 顶部搜索区：搜索框 + 搜索按钮 + 重置 */
 .np-searchbar {
     display: flex;
     align-items: center;
@@ -563,7 +551,6 @@ const pickKind = (kind: string) => {
     justify-content: flex-end;
 }
 
-/* ============ 搜索框 ============ */
 .np-search {
     position: relative;
     display: flex;
@@ -625,7 +612,6 @@ const pickKind = (kind: string) => {
     flex: none;
 }
 
-/* ============ 折叠标签栏（玻璃） ============ */
 .np-panel {
     flex: none;
     display: grid;
@@ -686,7 +672,6 @@ const pickKind = (kind: string) => {
     gap: 8px;
 }
 
-/* 标签胶囊 + 数量角标 */
 .np-chip {
     display: inline-flex;
     align-items: center;
@@ -716,7 +701,6 @@ const pickKind = (kind: string) => {
     font-weight: 600;
 }
 
-/* 数量角标 */
 .np-chip__count {
     display: inline-flex;
     align-items: center;
@@ -739,7 +723,6 @@ const pickKind = (kind: string) => {
     background: rgba(139, 139, 255, 0.55);
 }
 
-/* 折叠动画 */
 .np-drop-enter-active,
 .np-drop-leave-active {
     transition: opacity 0.2s ease, transform 0.2s ease;
@@ -751,7 +734,6 @@ const pickKind = (kind: string) => {
     transform: translateY(-6px);
 }
 
-/* ============ 主体两栏（玻璃大面） ============ */
 .np-body {
     flex: 1;
     min-height: 0;
@@ -775,7 +757,6 @@ const pickKind = (kind: string) => {
         inset 0 1px 0 rgba(255, 255, 255, 0.10);
 }
 
-/* 一级分类侧栏 */
 .np-side {
     position: sticky;
     top: 0;
@@ -856,7 +837,6 @@ const pickKind = (kind: string) => {
     color: #8b8bff;
 }
 
-/* 星标分类：金色星星强调，与普通分类做区分 */
 .np-cat--pin .np-cat__star {
     color: #ffd166;
     font-size: 13px;
@@ -875,7 +855,6 @@ const pickKind = (kind: string) => {
     color: #ffd166;
 }
 
-/* 主内容：唯一滚动容器 */
 .np-main {
     position: relative;
     min-width: 0;
@@ -903,14 +882,12 @@ const pickKind = (kind: string) => {
     background: rgba(255, 255, 255, 0.32);
 }
 
-/* 顶部锚点（星标分组锚点也用这类，零高度不占位） */
 .np-anchor {
     display: block;
     height: 0;
     overflow: hidden;
 }
 
-/* 二级分类 pill（玻璃） */
 .np-kinds {
     display: inline-flex;
     flex-wrap: wrap;
@@ -948,7 +925,6 @@ const pickKind = (kind: string) => {
     font-weight: 600;
 }
 
-/* 一级分类区块 */
 .np-section {
     margin-bottom: 40px;
     scroll-margin-top: 16px;
@@ -971,7 +947,6 @@ const pickKind = (kind: string) => {
     border-radius: 2px;
 }
 
-/* 星标分组标题：金色星星与色条 */
 .np-section--pin .np-section__bar {
     background: #ffd166;
 }
@@ -988,7 +963,6 @@ const pickKind = (kind: string) => {
     color: #6b6b74;
 }
 
-/* 二级分类小节 */
 .np-sub {
     margin-bottom: 28px;
     scroll-margin-top: 16px;
@@ -1019,7 +993,6 @@ const pickKind = (kind: string) => {
     font-variant-numeric: tabular-nums;
 }
 
-/* ============ 网格 ============ */
 .np-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -1054,7 +1027,6 @@ const pickKind = (kind: string) => {
     }
 }
 
-/* ============ 空状态 ============ */
 .np-empty {
     display: flex;
     flex-direction: column;
@@ -1069,13 +1041,11 @@ const pickKind = (kind: string) => {
     font-size: 14px;
 }
 
-/* ============ 无障碍：键盘焦点可见 ============ */
 .np :focus-visible {
     outline: 2px solid #8b8bff;
     outline-offset: 2px;
 }
 
-/* 尊重减少动效偏好 */
 @media (prefers-reduced-motion: reduce) {
     .np-main {
         scroll-behavior: auto;
@@ -1089,7 +1059,6 @@ const pickKind = (kind: string) => {
     }
 }
 
-/* ============ 响应式 ============ */
 @media (max-width: 1024px) {
     .np {
         padding: 28px;
@@ -1176,7 +1145,6 @@ const pickKind = (kind: string) => {
     }
 }
 
-/* ============ 打印 ============ */
 @media print {
     .np {
         height: auto;

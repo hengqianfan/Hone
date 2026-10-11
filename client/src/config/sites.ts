@@ -44,16 +44,6 @@ export const sites: Site[] = [
     },
 
     {
-        name: 'V2EX',
-        categoryId: '001',
-        kind: '社区论坛',
-        icon: 'v2ex',
-        desc: '一个小论坛',
-        tags: ['论坛'],
-        link: 'https://edge.v2ex.com/',
-    },
-
-    {
         name: 'vcalendar',
         categoryId: '001',
         kind: '开源项目',
@@ -80,6 +70,17 @@ export const sites: Site[] = [
         desc: '基于 CNB 平台的 AI 员工，自主闭环研发任务。',
         tags: ['ai', '大模型'],
         link: 'https://cnb.cool/npc/CodeBuddy',
+        pin: 100,
+    },
+
+    {
+        name: 'claude',
+        categoryId: '002',
+        kind: '对话模型',
+        icon: 'claude',
+        desc: '短暂火过的ai模型',
+        tags: ['大模型'],
+        link: 'https://claude.ai/new',
     },
 
     {
@@ -191,6 +192,15 @@ export const sites: Site[] = [
     },
 
     {
+        name: '猫狸盘搜',
+        categoryId: '003',
+        kind: '影视资源',
+        desc: '比较好用的影视网盘资源搜索平台，配合阿里云盘贼好用',
+        tags: ['网盘', '资源'],
+        link: 'https://www.alipansou.com/',
+    },
+
+    {
         name: 'YouTube',
         categoryId: '003',
         kind: '综合类',
@@ -246,7 +256,26 @@ export const sites: Site[] = [
         tags: ['游戏平台', '游戏', 'steam'],
         link: 'https://store.steampowered.com/',
     },
+
+    {
+        name: 'Watt Toolkit',
+        categoryId: '004',
+        kind: '游戏工具',
+        icon: 'steampp',
+        desc: '免费的游戏加速器',
+        tags: ['加速器', '游戏'],
+        link: 'https://steampp.net/',
+    },
     // ---------- 005 博客网站 ----------
+    {
+        name: '界衡千帆',
+        categoryId: '005',
+        kind: '个人博客',
+        desc: '我的个人博客',
+        tags: ['github', '博客', 'vue'],
+        link: 'https://hengqianfan.github.io/Hone/',
+    },
+
     {
         name: '罗磊的独立博客',
         categoryId: '005',
@@ -255,7 +284,36 @@ export const sites: Site[] = [
         tags: ['博客', '前端'],
         link: 'https://luolei.org/',
     },
+
+    {
+        name: 'YYsuni Blog',
+        categoryId: '005',
+        kind: '个人博客',
+        desc: '蛮好看的个人博客',
+        tags: ['开源', '独立博客'],
+        link: 'https://github.com/YYsuni/2025-blog-public',
+    },
     // ---------- 006 软件工具 ----------
+    {
+        name: '阿里云盘',
+        categoryId: '006',
+        kind: '网盘存储',
+        icon: 'alipan',
+        desc: '阿里旗下的网盘软件',
+        tags: ['网盘'],
+        link: 'https://www.alipan.com/',
+    },
+
+    {
+        name: '百度网盘',
+        categoryId: '006',
+        kind: '网盘存储',
+        icon: 'baidu',
+        desc: '老牌但是昂贵的网盘',
+        tags: ['网盘', '存储', '资源'],
+        link: 'https://pan.baidu.com/',
+    },
+
     {
         name: '低价机场',
         categoryId: '006',
@@ -282,8 +340,18 @@ export const sites: Site[] = [
         kind: '搜索工具',
         icon: 'google',
         desc: '世界级搜索引擎，互联网巨头',
-        tags: ['谷歌', 'google', '搜索引擎', '互联网巨头'],
+        tags: ['谷歌', '搜索引擎', '互联网巨头'],
         link: 'https://www.google.com/',
+    },
+
+    {
+        name: 'PikPak',
+        categoryId: '006',
+        kind: '网盘存储',
+        icon: 'pikpak',
+        desc: '火过一段时间的网盘，可以绑定小飞机',
+        tags: ['网盘', '资源'],
+        link: 'https://mypikpak.net/',
     },
 
     {
@@ -328,11 +396,21 @@ export const sites: Site[] = [
     {
         name: '知乎',
         categoryId: '009',
-        kind: '知识社区',
+        kind: '知名主流',
         icon: 'zhihu',
         desc: '老牌知识论坛',
         tags: ['社区', '知识'],
         link: 'https://www.zhihu.com/',
+    },
+
+    {
+        name: 'V2EX',
+        categoryId: '009',
+        kind: '专业门类',
+        icon: 'v2ex',
+        desc: '略有名气的以程序员为主的论坛',
+        tags: ['论坛'],
+        link: 'https://edge.v2ex.com/',
     },
 
     {

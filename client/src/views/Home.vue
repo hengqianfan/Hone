@@ -313,6 +313,8 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     border-color: rgba(139, 139, 255, 0.32);
 }
 
+
+
 /* 卡片顶部柔光 */
 .pcard__glow {
     position: absolute;
