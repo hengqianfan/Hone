@@ -518,8 +518,7 @@ onMounted(() => {
 
     /* 黑色玻璃：半透明黑底 + 背景模糊 */
     background-color: rgba(23, 24, 26, 0.72);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
+
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
         0 1px 2px rgba(0, 0, 0, 0.4),
@@ -716,8 +715,7 @@ onMounted(() => {
     border-radius: 20px;
 
     background-color: rgba(23, 24, 26, 0.78);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 4px 16px -8px rgba(0, 0, 0, 0.8);
 }
@@ -786,8 +784,7 @@ onMounted(() => {
     border-radius: 16px;
 
     background-color: rgba(23, 24, 26, 0.72);
-    backdrop-filter: blur(12px) saturate(140%);
-    -webkit-backdrop-filter: blur(12px) saturate(140%);
+
     border: 1px solid rgba(255, 255, 255, 0.07);
     box-shadow:
         0 1px 2px rgba(0, 0, 0, 0.4),
@@ -843,8 +840,7 @@ onMounted(() => {
     line-height: 1;
     color: #fff;
     background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+
     pointer-events: none;
 }
 
@@ -1008,8 +1004,7 @@ onMounted(() => {
     inset: 0;
     z-index: 9999;
     background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1029,8 +1024,7 @@ onMounted(() => {
     border-radius: 18px;
     overflow: hidden;
     background: rgba(20, 21, 23, 0.92);
-    backdrop-filter: blur(20px) saturate(140%);
-    -webkit-backdrop-filter: blur(20px) saturate(140%);
+
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #f2f2f2;
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
@@ -1201,8 +1195,7 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     transition: background 0.2s ease;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+
 }
 
 .viewer-nav:hover:not(:disabled) {
@@ -1232,8 +1225,7 @@ onMounted(() => {
     font-size: 12px;
     color: #fff;
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+
 }
 
 .viewer-foot {

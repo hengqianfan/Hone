@@ -531,14 +531,13 @@ $ghub-shadow-soft: 0 4px 14px rgba(0, 0, 0, 0.22);
 // 弹层轻投影：面板 / 子菜单 / tooltip
 $ghub-shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.3);
 
-/* ---------- 模糊 ---------- */
 
-$ghub-blur: blur(16px) saturate(150%);
-$ghub-blur-strong: blur(22px) saturate(160%);
 
 /* ---------- 层级 ---------- */
 
 $ghub-z: 1000;
+
+
 
 /* =========================================================
  * 根节点：贴右侧垂直居中
@@ -583,6 +582,7 @@ $ghub-z: 1000;
 
     position: relative;
 
+
     width: $ghub-size;
     height: $ghub-size;
 
@@ -596,8 +596,6 @@ $ghub-z: 1000;
 
     background: $ghub-logo-bg;
 
-    backdrop-filter: $ghub-blur;
-    -webkit-backdrop-filter: $ghub-blur;
 
     box-shadow: $ghub-shadow-soft;
 
@@ -663,8 +661,7 @@ $ghub-z: 1000;
 
     background: $ghub-nav-bg;
 
-    backdrop-filter: $ghub-blur;
-    -webkit-backdrop-filter: $ghub-blur;
+
 }
 
 
@@ -713,6 +710,7 @@ $ghub-z: 1000;
         background 0.25s ease,
         transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 
+    /* 2 秒一次，无限循环 */
     i {
 
         font-size: 16px;
@@ -751,6 +749,8 @@ $ghub-z: 1000;
         color: $ghub-option-fc-active;
 
         background: $ghub-active;
+
+
 
         >i {
             color: $ghub-option-fc-active;
@@ -806,8 +806,7 @@ $ghub-z: 1000;
 
     border: 1px solid $ghub-border-strong;
 
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+
 
     box-shadow: $ghub-shadow-pop;
 
@@ -879,8 +878,7 @@ $ghub-z: 1000;
 
     background: rgba(16, 18, 24, 0.78);
 
-    backdrop-filter: $ghub-blur-strong;
-    -webkit-backdrop-filter: $ghub-blur-strong;
+
 
     box-shadow: $ghub-shadow-pop;
 
@@ -1085,8 +1083,7 @@ $ghub-z: 1000;
 
     background: $ghub-logo-bg;
 
-    backdrop-filter: $ghub-blur;
-    -webkit-backdrop-filter: $ghub-blur;
+
 
     cursor: pointer;
 
@@ -1162,8 +1159,6 @@ $ghub-z: 1000;
 
     background: rgba(0, 0, 0, 0.4);
 
-    backdrop-filter: blur(8px) saturate(120%);
-    -webkit-backdrop-filter: blur(8px) saturate(120%);
 }
 
 
@@ -1185,8 +1180,6 @@ $ghub-z: 1000;
 
     background: $ghub-panel-bg;
 
-    backdrop-filter: $ghub-blur-strong;
-    -webkit-backdrop-filter: $ghub-blur-strong;
 
     color: $ghub-text;
 
@@ -1684,6 +1677,9 @@ $ghub-z: 1000;
     transform:
         translateX(20px) scale(0.92);
 }
+
+
+
 
 
 /* =========================================================

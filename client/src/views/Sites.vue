@@ -457,8 +457,7 @@ const pickKind = (kind: string) => {
     color: #9a9aa2;
     background: rgba(28, 28, 32, 0.45);
     border-color: rgba(255, 255, 255, 0.10);
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
+
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
@@ -513,8 +512,7 @@ const pickKind = (kind: string) => {
     border: 1px solid rgba(255, 255, 255, 0.10);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     background: rgba(18, 18, 20, 0.72);
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
+
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
 }
 
@@ -625,8 +623,7 @@ const pickKind = (kind: string) => {
     border-right: 1px solid rgba(255, 255, 255, 0.10);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     background: rgba(18, 18, 20, 0.55);
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
+
     max-height: 40%;
     overflow-y: auto;
 }
@@ -751,8 +748,7 @@ const pickKind = (kind: string) => {
     border-bottom: 1px solid rgba(255, 255, 255, 0.10);
     border-radius: 0 0 18px 18px;
     background: rgba(18, 18, 20, 0.55);
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
+
     box-shadow: 0 12px 40px -16px rgba(0, 0, 0, 0.75),
         inset 0 1px 0 rgba(255, 255, 255, 0.10);
 }
@@ -897,8 +893,7 @@ const pickKind = (kind: string) => {
     background: rgba(28, 28, 32, 0.45);
     border: 1px solid rgba(255, 255, 255, 0.10);
     border-radius: 11px;
-    backdrop-filter: blur(11px);
-    -webkit-backdrop-filter: blur(11px);
+
 }
 
 .np-kind {

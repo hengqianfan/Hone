@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
 // TODO: 引入你的倒计时组件
 import Countdown from '@/components/countdown/index.vue';
 import { countdowns } from '@/config/countdowns';
@@ -27,13 +27,23 @@ interface Article {
     href: string;
 }
 
+/** 搜索引擎 */
+interface SearchEngine {
+    key: string;
+    label: string;
+    /** 关键词占位符，替换为 encodeURIComponent 后的关键词 */
+    url: string;
+    color: string;
+    icon: string;
+}
+
 /* ============ 个人信息 ============ */
 const profile = {
     name: '衡千帆',
     role: '技术爱好者 / 流浪型宅男',
     location: '中国 · 云南',
     bio: '嗨，欢迎浏览我的博客「 HONE 」',
-    avatar: '', // 留空显示首字母
+    avatar: './favicon.ico', // 留空显示首字母
 };
 
 const socials: SocialLink[] = [
@@ -58,6 +68,126 @@ const socials: SocialLink[] = [
         icon: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-2.6a15.6 15.6 0 0 0-1.4-3.5A8.05 8.05 0 0 1 18.9 8ZM12 4c.8 1.1 1.5 2.4 1.9 4h-3.8c.4-1.6 1.1-2.9 1.9-4ZM4.3 14a8.1 8.1 0 0 1 0-4h2.9a17 17 0 0 0 0 4H4.3ZM5.1 16h2.6c.35 1.28.83 2.44 1.4 3.5A8.05 8.05 0 0 1 5.1 16Zm2.6-8H5.1a8.05 8.05 0 0 1 4-3.5A15.6 15.6 0 0 0 7.7 8ZM12 20c-.8-1.1-1.5-2.4-1.9-4h3.8c-.4 1.6-1.1 2.9-1.9 4Zm2.34-6H9.66a15 15 0 0 1 0-4h4.68a15 15 0 0 1 0 4Zm.56 5.5c.57-1.06 1.05-2.22 1.4-3.5h2.6a8.05 8.05 0 0 1-4 3.5Zm1.8-5.5a17 17 0 0 0 0-4h2.9a8.1 8.1 0 0 1 0 4h-2.9Z',
     },
 ];
+
+/* ============ 搜索引擎配置 ============ */
+const engines: [SearchEngine, ...SearchEngine[]] = [
+    {
+        key: 'google',
+        label: 'Google',
+        url: 'https://www.google.com/search?q=',
+        color: '#4285f4',
+        icon: 'M12 11v2.4h5.7c-.23 1.47-1.75 4.32-5.7 4.32A6.6 6.6 0 0 1 5.4 12 6.6 6.6 0 0 1 12 5.28c1.88 0 3.14.8 3.86 1.48l2.62-2.52C16.86 2.72 14.66 2 12 2a10 10 0 1 0 0 20c5.77 0 9.6-4.06 9.6-9.77 0-.66-.07-1.16-.16-1.66L12 11Z',
+    },
+    {
+        key: 'baidu',
+        label: '百度',
+        url: 'https://www.baidu.com/s?wd=',
+        color: '#2932e1',
+        icon: 'M12 2C7.58 2 4 4.13 4 8.5c0 3.05 2.02 5.5 5.06 5.5h.19c.6 1.13.36 2.32-.53 3.1-.86.75-1.9 1.36-1.9 2.36 0 1.35 1.6 2.04 3.32 2.04 1.6 0 3.06-.55 4.34-1.36l.68.85C16.4 22.3 18.8 22 20 20.8c-.85-.36-1.72-1-2.06-1.86.6-1.02.6-2.2-.14-3.06C20.1 14.6 20 11.47 20 8.5 20 4.13 16.42 2 12 2Zm-4 5.5c.83 0 1.5 1.12 1.5 2.5S8.83 12.5 8 12.5 6.5 11.38 6.5 10 7.17 7.5 8 7.5Zm7.3.4c1.02.1 1.7 1.32 1.53 2.72-.18 1.4-1.13 2.46-2.15 2.37-1.02-.1-1.7-1.32-1.52-2.72.17-1.4 1.12-2.46 2.14-2.37Z',
+    },
+    {
+        key: 'bing',
+        label: 'Bing',
+        url: 'https://www.bing.com/search?q=',
+        color: '#0c8484',
+        icon: 'M5 3v15.3l3.6 2.2 5.1-2.9v-3.1L9.4 12V6.1L5 3Zm6.6 2.2v9.9l2.3 1.3 4.6-2.6c1.5-.85 1.5-2.9 0-3.75l-6.9-4.85Z',
+    },
+    {
+        key: 'github',
+        label: 'GitHub',
+        url: 'https://github.com/search?q=',
+        color: '#e8e8ea',
+        icon: 'M12 2C6.475 2 2 6.475 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.699-2.782.604-3.369-1.341-3.369-1.341-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.607.069-.607 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.03-2.682-.103-.253-.447-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.56 9.56 0 0 1 12 6.8c.85.004 1.705.115 2.504.337 1.909-1.294 2.748-1.025 2.748-1.025.546 1.377.202 2.394.1 2.647.64.698 1.028 1.591 1.028 2.682 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.138 20.163 22 16.418 22 12c0-5.525-4.475-10-10-10Z',
+    },
+    {
+        key: 'juejin',
+        label: '掘金',
+        url: 'https://juejin.cn/search?query=',
+        color: '#1e80ff',
+        icon: 'M12 2 2 9l10 7 10-7-10-7Zm0 2.32L18.53 9 12 13.68 5.47 9 12 4.32ZM2 15l10 7 10-7-1.7-1.19L12 19.32l-8.3-5.51L2 15Z',
+    },
+];
+
+const SEARCH_CACHE_KEY = 'hone:search-engine';
+const KEYWORD_CACHE_KEY = 'hone:search-keyword';
+
+const keyword = ref('');
+const activeKey = ref<string>(engines[0].key || '');
+
+/** 下拉面板开关 */
+const engineMenuOpen = ref(false);
+/** 整个切换器的根元素，用于点击外部关闭 */
+const switcherRef = ref<HTMLElement | null>(null);
+
+const activeEngine = computed<SearchEngine>(
+    () => engines.find((e) => e.key === activeKey.value) ?? engines[0]
+);
+
+/** 执行搜索 */
+function doSearch() {
+    const kw = keyword.value.trim();
+    if (!kw) return;
+    const target = activeEngine.value;
+    window.open(target.url + encodeURIComponent(kw), '_blank', 'noopener,noreferrer');
+    try {
+        localStorage.setItem(KEYWORD_CACHE_KEY, kw);
+    } catch {
+        /* 隐私模式等场景忽略 */
+    }
+}
+
+/** 切换引擎 */
+function selectEngine(key: string) {
+    activeKey.value = key;
+    engineMenuOpen.value = false;
+    try {
+        localStorage.setItem(SEARCH_CACHE_KEY, key);
+    } catch {
+        /* ignore */
+    }
+}
+
+/** 点击外部 / Esc 关闭下拉 */
+function onDocPointerDown(e: MouseEvent) {
+    if (!engineMenuOpen.value) return;
+    const root = switcherRef.value;
+    if (root && !root.contains(e.target as Node)) {
+        engineMenuOpen.value = false;
+    }
+}
+function onKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') engineMenuOpen.value = false;
+}
+
+onMounted(() => {
+    try {
+        const cachedEngine = localStorage.getItem(SEARCH_CACHE_KEY);
+        if (cachedEngine && engines.some((e) => e.key === cachedEngine)) {
+            activeKey.value = cachedEngine;
+        }
+        const cachedKeyword = localStorage.getItem(KEYWORD_CACHE_KEY);
+        if (cachedKeyword) keyword.value = cachedKeyword;
+    } catch {
+        /* ignore */
+    }
+
+    document.addEventListener('pointerdown', onDocPointerDown);
+    document.addEventListener('keydown', onKeydown);
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('pointerdown', onDocPointerDown);
+    document.removeEventListener('keydown', onKeydown);
+});
+
+/* 输入内容变化时同步缓存，避免只在提交时记录 */
+watch(keyword, (v) => {
+    try {
+        localStorage.setItem(KEYWORD_CACHE_KEY, v);
+    } catch {
+        /* ignore */
+    }
+});
 
 /* ============ 推荐项目 ============ */
 const projects: Project[] = [
@@ -109,7 +239,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 <template>
     <div class="card-page">
         <div class="card-page__grid">
-            <!-- ============ 左列：个人卡片 + 倒计时卡片（竖向排布） ============ -->
+            <!-- ============ 左列：个人卡片 + 搜索卡片 + 倒计时卡片（竖向排布） ============ -->
             <div class="card-page__left">
                 <!-- 个人介绍卡片 -->
                 <article class="pcard">
@@ -148,6 +278,59 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
                         </div>
                     </div>
                 </article>
+
+                <!-- ============ 快速搜索卡片 ============ -->
+                <section class="card scard" aria-label="快速搜索">
+
+
+                    <form class="sform" @submit.prevent="doSearch">
+                        <!-- 单个引擎图标：点击展开选择菜单 -->
+                        <div ref="switcherRef" class="sengine-switch">
+                            <button type="button" class="sengine-trigger" :class="{ 'is-open': engineMenuOpen }"
+                                :aria-expanded="engineMenuOpen" aria-haspopup="listbox" :title="activeEngine.label"
+                                @click="engineMenuOpen = !engineMenuOpen">
+                                <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="currentColor"
+                                    :style="{ color: activeEngine.color }">
+                                    <path :d="activeEngine.icon" />
+                                </svg>
+                            </button>
+
+                            <!-- 下拉菜单 -->
+                            <transition name="smenu">
+                                <ul v-if="engineMenuOpen" class="sengine-menu" role="listbox"
+                                    :aria-activedescendant="`engine-${activeKey}`">
+                                    <li v-for="e in engines" :key="e.key" :id="`engine-${e.key}`" class="sengine-item"
+                                        role="option" :aria-selected="e.key === activeKey"
+                                        :class="{ 'is-active': e.key === activeKey }" @click="selectEngine(e.key)">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"
+                                            fill="currentColor" :style="{ color: e.color }">
+                                            <path :d="e.icon" />
+                                        </svg>
+                                        <span>{{ e.label }}</span>
+                                    </li>
+                                </ul>
+                            </transition>
+                        </div>
+
+                        <input v-model="keyword" class="sform__input" type="text"
+                            :placeholder="`用 ${activeEngine.label} 搜索…`" autocomplete="off" spellcheck="false"
+                            aria-label="搜索关键词" />
+
+                        <button v-if="keyword" type="button" class="sform__clear" aria-label="清空" @click="keyword = ''">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round">
+                                <path d="M6 6l12 12M18 6 6 18" />
+                            </svg>
+                        </button>
+
+                        <button type="submit" class="sform__submit" aria-label="搜索" :disabled="!keyword.trim()">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 12h13M13 6l6 6-6 6" />
+                            </svg>
+                        </button>
+                    </form>
+                </section>
 
                 <!-- 倒计时卡片：外层玻璃壳 + 你的 Countdown 组件 -->
                 <section class="card ccard" aria-label="倒计时">
@@ -259,7 +442,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     -webkit-font-smoothing: antialiased;
 }
 
-/* 两列网格：左个人信息(+倒计时) / 右项目 + 文章
+/* 两列网格：左个人信息(+搜索+倒计时) / 右项目 + 文章
    align-items: stretch（默认）让两列格子等高，这是「左右等高」的关键 */
 .card-page__grid {
     display: grid;
@@ -270,11 +453,11 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     align-items: stretch;
 }
 
-/* 左列：竖向 flex 容器，个人卡片 + 倒计时卡片 */
+/* 左列：竖向 flex 容器，个人卡片 + 搜索卡片 + 倒计时卡片 */
 .card-page__left {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 12px;
     min-width: 0;
     height: 100%;
     /* 撑满 grid 单元高度 */
@@ -301,8 +484,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     border-radius: 28px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(18, 18, 20, 0.58);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
+
     box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.9),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     overflow: hidden;
@@ -312,8 +494,6 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 .pcard:hover {
     border-color: rgba(139, 139, 255, 0.32);
 }
-
-
 
 /* 卡片顶部柔光 */
 .pcard__glow {
@@ -339,8 +519,8 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 
 .pcard__avatar {
     flex: none;
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     overflow: hidden;
     display: grid;
@@ -371,7 +551,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 
 .pcard__name {
     margin: 0;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.4px;
     color: #e8e8ea;
@@ -391,7 +571,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 
 .pcard__bio {
     margin: 0;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.5;
     color: #9a9aa2;
 }
@@ -401,7 +581,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     align-items: center;
     gap: 6px;
     margin: 0;
-    font-size: 13px;
+    font-size: 12px;
     color: #6b6b74;
 }
 
@@ -409,7 +589,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin-top: 4px;
+    margin-top: 3px;
 }
 
 .psocial {
@@ -434,12 +614,11 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 
 /* ==================== 通用卡片 ==================== */
 .card {
-    padding: 26px 24px 24px;
+    padding: 22px 20px 20px;
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.09);
     background: rgba(18, 18, 20, 0.58);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
+
     box-shadow: 0 30px 70px -34px rgba(0, 0, 0, 0.9),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
     transition: border-color 0.3s ease;
@@ -453,7 +632,8 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
+
 }
 
 .card__dot {
@@ -475,6 +655,11 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     box-shadow: 0 0 9px 1px rgba(255, 180, 84, 0.75);
 }
 
+.card__dot--cool {
+    background: #5cb8ff;
+    box-shadow: 0 0 9px 1px rgba(92, 184, 255, 0.75);
+}
+
 @keyframes pulse {
 
     0%,
@@ -494,9 +679,192 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     color: #9a9aa2;
 }
 
+/* ==================== 快速搜索卡片 ==================== */
+.scard {
+    position: relative;
+    /* 让下拉菜单可以溢出卡片，且不裁切 */
+    overflow: visible;
+    padding: 10px;
+    border-radius: 20px;
+    // border-radius: 10px;
+}
+
+.scard::before {
+    content: '';
+    position: absolute;
+    top: -120px;
+    left: 50%;
+    width: 360px;
+    height: 200px;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, rgba(92, 184, 255, 0.14), transparent 70%);
+    pointer-events: none;
+}
+
+/* 输入表单 */
+.sform {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(180deg, rgba(28, 28, 32, 0.78), rgba(22, 22, 26, 0.66));
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sform:focus-within {
+    border-color: rgba(92, 184, 255, 0.55);
+    box-shadow: 0 0 0 3px rgba(92, 184, 255, 0.12);
+}
+
+/* 引擎切换器容器（相对定位，作为下拉菜单的锚点） */
+.sengine-switch {
+    position: relative;
+    flex: none;
+}
+
+/* 单个引擎图标按钮 */
+.sengine-trigger {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    cursor: pointer;
+    background: rgba(28, 28, 32, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 11px;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.sengine-trigger:hover {
+    background: rgba(92, 184, 255, 0.12);
+    border-color: rgba(92, 184, 255, 0.45);
+}
+
+.sengine-trigger.is-open {
+    background: rgba(92, 184, 255, 0.16);
+    border-color: rgba(92, 184, 255, 0.55);
+    box-shadow: 0 0 0 3px rgba(92, 184, 255, 0.1);
+}
+
+/* 下拉菜单 */
+.sengine-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 20;
+    min-width: 148px;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(24, 24, 28, 0.96);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 22px 46px -18px rgba(0, 0, 0, 0.95),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.sengine-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #9a9aa2;
+    cursor: pointer;
+    transition: color 0.16s ease, background 0.16s ease;
+}
+
+.sengine-item:hover {
+    color: #e8e8ea;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.sengine-item.is-active {
+    color: #e8e8ea;
+    background: rgba(92, 184, 255, 0.14);
+}
+
+/* 下拉出现动画 */
+.smenu-enter-active,
+.smenu-leave-active {
+    transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.smenu-enter-from,
+.smenu-leave-to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+}
+
+/* 输入框部分 */
+.sform__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 7px 0;
+    font-size: 13.5px;
+    color: #e8e8ea;
+    font-family: inherit;
+}
+
+.sform__input::placeholder {
+    color: #5f5f68;
+}
+
+.sform__clear {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    cursor: pointer;
+    color: #6b6b74;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    transition: color 0.18s ease, background 0.18s ease;
+}
+
+.sform__clear:hover {
+    color: #e8e8ea;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.sform__submit {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    cursor: pointer;
+    color: #0f0f12;
+    background: linear-gradient(135deg, #5cb8ff, #8b8bff);
+    border: none;
+    border-radius: 11px;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.sform__submit:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 6px 18px -8px rgba(92, 184, 255, 0.9);
+}
+
+.sform__submit:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
 /* ==================== 倒计时卡片 ==================== */
-/* 与其他卡片一致的玻璃壳；做 flex 纵向布局，让 __body 吃掉剩余高度，
-   这样外层卡片被拉高时，组件区域也会跟着铺满 */
 .ccard {
     position: relative;
     display: flex;
@@ -519,7 +887,6 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 .ccard__body {
     position: relative;
     flex: 1 1 auto;
-    /* 铺满卡片剩余高度 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -762,7 +1129,6 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
         align-items: flex-start;
     }
 
-    /* 两列合并为单列：此时不再需要「等高」，重置高度继承与拉伸 */
     .card-page__grid {
         grid-template-columns: 1fr;
         gap: 20px;
@@ -801,13 +1167,16 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 
 @media (max-width: 480px) {
 
-    /* 窄屏项目改为单列 */
     .proj-list {
         grid-template-columns: 1fr;
     }
 
     .ccard__body {
         padding: 14px 12px;
+    }
+
+    .sengine-menu {
+        min-width: 132px;
     }
 
     .proj-link:hover,

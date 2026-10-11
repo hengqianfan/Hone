@@ -331,7 +331,7 @@ $card-max-width: 320px;
 /* 筛选容器：玻璃胶囊 */
 $menu-bg: rgba(14, 16, 21, 0.5);
 $menu-border: rgba(255, 255, 255, 0.12);
-$blur: blur(16px) saturate(150%);
+
 
 /* 内容区 */
 $content-bg: rgba(16, 18, 24, 0.72);
@@ -406,8 +406,7 @@ $page-ring-active: rgba(79, 156, 255, 0.45);
 
     background: $menu-bg;
     border: 1px solid $menu-border;
-    backdrop-filter: $blur;
-    -webkit-backdrop-filter: $blur;
+
 }
 
 .filter-row {
@@ -680,8 +679,7 @@ $page-ring-active: rgba(79, 156, 255, 0.45);
     border: 1px solid $content-border;
 
     background: $content-bg;
-    backdrop-filter: blur(22px) saturate(160%);
-    -webkit-backdrop-filter: blur(22px) saturate(160%);
+
 
     display: grid;
     /* 固定 4 列，每列不超过 $card-max-width，超出部分由 justify-content 居中吸收 */
