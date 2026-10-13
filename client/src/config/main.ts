@@ -7,8 +7,7 @@ interface HoneConfig {
     socialLinks?: { name: string, icon: string, url: string }[]
     personalIntro: string
     imgServerBase?: string
-
-
+    siteVersion: string
     base?: string
 }
 
@@ -16,6 +15,7 @@ interface HoneConfig {
 export const honeConfig: HoneConfig = {
     base: '/Hone/',
     siteTitle: '界·衡千帆',
+    siteVersion: '0.6.2',
     siteIntro: '一个不能但想要永远更新的独立博客',
     siteDescription: '本站是 衡千帆 的个人博客，是基于自己开发的 Hone 项目构建的，我的博客经过几次更迭，我最终采用现今这样的极简又具有功能性的设计，记录和分享一些技术文章、生活碎片以及个人项目。',
     author: '衡千帆',

@@ -35,3 +35,15 @@
         }
     }
 }
+
+
+// 防止移动端点击时蓝光
+@media (hover: none) and (pointer: coarse) {
+
+    *,
+    *::before,
+    *::after {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none; // 可选：禁掉长按弹出菜单
+    }
+}

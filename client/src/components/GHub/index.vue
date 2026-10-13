@@ -120,6 +120,8 @@
                         <h3>设置</h3>
                     </div>
 
+
+
                     <div class="ghub-setting-group">
                         <div class="ghub-setting-label">本地壁纸库</div>
 
@@ -127,6 +129,11 @@
                             <span>目录</span>
                             <span class="ghub-setting-ellipsis">{{ dirName || '未选择' }}</span>
                         </div>
+
+                        <br>
+
+                        <div class="ghub-setting-label">手机端不可配置此项</div>
+
 
                         <div class="ghub-setting-row ghub-setting-actions">
                             <button type="button" class="ghub-setting-btn" @click="pickAndScan">
@@ -201,7 +208,9 @@
                             </button>
                         </div>
                     </div>
-
+                    <div class="ghub-setting-group">
+                        <div class="ghub-setting-label"> 当前网站版本：{{ honeConfig.siteVersion }}</div>
+                    </div>
                 </div>
             </div>
         </Transition>
@@ -215,6 +224,7 @@ import { useLocalWallpaper } from '@/utils/useLocalWallpaper'
 import Countdown from '@/components/countdown/index.vue'
 import { countdowns } from '@/config/countdowns'
 import { useBackgroundStore } from '@/stores/background'
+import { honeConfig } from '@/config/main'
 
 const {
     hasDir,
