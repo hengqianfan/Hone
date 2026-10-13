@@ -128,7 +128,6 @@ const onIconError = (e: Event) => {
 $post-radius: 16px;
 $post-line-height: 24px;
 $post-icon-size: 28px;
-$post-card-width: 290px;
 
 .post {
     box-sizing: border-box;
@@ -136,10 +135,9 @@ $post-card-width: 290px;
     display: flex;
     flex-direction: column;
 
-    /* 宽度写死，杜绝随内容伸缩 */
-    width: $post-card-width;
-    min-width: $post-card-width;
-    max-width: $post-card-width;
+    /* 宽度跟随父级单元格，列数与列宽由列表页 grid 决定 */
+    width: 100%;
+    min-width: 0;
     height: 100%;
 
     padding: 10px;

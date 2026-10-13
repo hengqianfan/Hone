@@ -13,13 +13,20 @@ const props = withDefaults(
         interval?: number
         /** 是否自动轮播 */
         autoplay?: boolean
+        /** 卡片固定高度 */
+        height?: number | string
     }>(),
-    { limit: 3, interval: 4000, autoplay: true }
+    { limit: 3, interval: 4000, autoplay: true, height: 150 }
 )
 
 const items = computed(() => pickUpcoming(props.list, props.limit))
 const index = ref(0)
 const current = computed(() => items.value[index.value])
+
+/* 固定高度：数字转换为 px，其余原样使用 */
+const cardHeight = computed(() =>
+    typeof props.height === 'number' ? `${props.height}px` : props.height
+)
 
 /* ---------- 倒计时计算 ---------- */
 const now = ref(Date.now())
@@ -72,51 +79,58 @@ watch(() => [props.autoplay, props.interval], start)
 </script>
 
 <template>
-    <div class="cd-carousel" @mouseenter="stop" @mouseleave="start">
+    <div class="cd-carousel" :style="{ height: cardHeight }" @mouseenter="stop" @mouseleave="start">
         <template v-if="current">
             <Transition name="cd-fade" mode="out-in">
                 <div :key="current.date + current.name" class="cd-slide">
-                    <!-- 标题区：名称与日期上下两行，整体居中 -->
+                    <!-- 标题区：固定高度，名称与日期上下两行 -->
                     <div class="cd-head">
                         <h3 class="cd-name" :title="current.name">{{ current.name }}</h3>
                         <span class="cd-date">{{ parseDate(current.date).toLocaleDateString() }}</span>
                     </div>
 
-                    <p v-if="current.desc" class="cd-desc">{{ current.desc }}</p>
-
-                    <!-- 时间：单行紧凑排布 -->
-                    <div v-if="!remain.reached" class="cd-timer">
-                        <div class="cd-unit">
-                            <span class="cd-num">{{ String(remain.days).padStart(2, '0') }}</span>
-                            <span class="cd-label">天</span>
-                        </div>
-                        <span class="cd-colon">:</span>
-                        <div class="cd-unit">
-                            <span class="cd-num">{{ String(remain.hours).padStart(2, '0') }}</span>
-                            <span class="cd-label">时</span>
-                        </div>
-                        <span class="cd-colon">:</span>
-                        <div class="cd-unit">
-                            <span class="cd-num">{{ String(remain.minutes).padStart(2, '0') }}</span>
-                            <span class="cd-label">分</span>
-                        </div>
-                        <span class="cd-colon">:</span>
-                        <div class="cd-unit">
-                            <span class="cd-num">{{ String(remain.seconds).padStart(2, '0') }}</span>
-                            <span class="cd-label">秒</span>
-                        </div>
+                    <!-- 描述区：始终占位，避免有无描述导致高度抖动 -->
+                    <div class="cd-desc-wrap">
+                        <p v-if="current.desc" class="cd-desc">{{ current.desc }}</p>
                     </div>
-                    <div v-else class="cd-reached">今天就是这一天 🎉</div>
 
-                    <!-- 指示器：有多个才显示 -->
-                    <div v-if="items.length > 1" class="cd-dots">
-                        <button v-for="(item, i) in items" :key="item.name + item.date" class="cd-dot"
-                            :class="{ active: i === index }" :aria-label="`切换到 ${item.name}`" @click="go(i)" />
+                    <!-- 时间区：固定高度 -->
+                    <div class="cd-timer-wrap">
+                        <div v-if="!remain.reached" class="cd-timer">
+                            <div class="cd-unit">
+                                <span class="cd-num">{{ String(remain.days).padStart(2, '0') }}</span>
+                                <span class="cd-label">天</span>
+                            </div>
+                            <span class="cd-colon">:</span>
+                            <div class="cd-unit">
+                                <span class="cd-num">{{ String(remain.hours).padStart(2, '0') }}</span>
+                                <span class="cd-label">时</span>
+                            </div>
+                            <span class="cd-colon">:</span>
+                            <div class="cd-unit">
+                                <span class="cd-num">{{ String(remain.minutes).padStart(2, '0') }}</span>
+                                <span class="cd-label">分</span>
+                            </div>
+                            <span class="cd-colon">:</span>
+                            <div class="cd-unit">
+                                <span class="cd-num">{{ String(remain.seconds).padStart(2, '0') }}</span>
+                                <span class="cd-label">秒</span>
+                            </div>
+                        </div>
+                        <div v-else class="cd-reached">今天就是这一天 🎉</div>
+                    </div>
+
+                    <!-- 指示器：固定高度，有多个才显示圆点 -->
+                    <div class="cd-dots-wrap">
+                        <div v-if="items.length > 1" class="cd-dots">
+                            <button v-for="(item, i) in items" :key="item.name + item.date" class="cd-dot"
+                                :class="{ active: i === index }" :aria-label="`切换到 ${item.name}`" @click="go(i)" />
+                        </div>
                     </div>
                 </div>
             </Transition>
 
-            <!-- 左右箭头：缩小尺寸，常显低透明度 -->
+            <!-- 左右箭头 -->
             <template v-if="items.length > 1">
                 <button class="cd-arrow cd-arrow--prev" aria-label="上一个" @click="(prev(), start())">
                     <svg viewBox="0 0 24 24" width="14" height="14">
@@ -139,7 +153,7 @@ watch(() => [props.autoplay, props.interval], start)
 
 <style scoped>
 /* =========================================================
-   紧凑版：整体高度与字号收敛，适配更小的面板
+   紧凑版 + 固定高度：各区块使用固定高度，消除内容抖动
    ========================================================= */
 .cd-carousel {
     --cd-fg: #5b73d1;
@@ -151,13 +165,18 @@ watch(() => [props.autoplay, props.interval], start)
     --cd-surface: rgba(255, 255, 255, 0.05);
     --cd-surface-hover: rgba(255, 255, 255, 0.1);
 
-    /* 内边距令牌：由 18/16 收紧到 12/10 */
+    /* 内边距令牌 */
     --panel-pad-x: 12px;
-    --panel-pad-y: 16px;
+    --panel-pad-y: 12px;
+
+    /* 各区块固定高度令牌（可按需调整） */
+    --head-h: 38px;
+    --desc-h: 24px;
+    --timer-h: 40px;
+    --dots-h: 14px;
 
     position: relative;
     width: 100%;
-    height: 100%;
     box-sizing: border-box;
     padding: var(--panel-pad-y) var(--panel-pad-x);
     display: flex;
@@ -168,22 +187,31 @@ watch(() => [props.autoplay, props.interval], start)
     user-select: none;
     border-radius: 14px;
     background-color: var(--cd-bg-in);
+    overflow: hidden;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* slide 撑满并纵向布局，区块按固定高度排列 */
 .cd-slide {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
     text-align: center;
     animation: cd-in 0.35s ease;
 }
 
-/* 标题区：名称在上、日期在下，二者水平居中 */
+/* ---------- 标题区：固定高度 ---------- */
 .cd-head {
+    flex: 0 0 var(--head-h);
+    height: var(--head-h);
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 2px;
-    margin-bottom: 6px;
+    overflow: hidden;
 }
 
 .cd-name {
@@ -204,26 +232,48 @@ watch(() => [props.autoplay, props.interval], start)
     font-size: 10px;
     line-height: 1.2;
     letter-spacing: 0.5px;
-    margin: 5px auto;
     text-align: center;
     color: var(--cd-sub);
     font-variant-numeric: tabular-nums;
 }
 
-/* 描述徽章：缩小并只在有内容时占位 */
+/* ---------- 描述区：固定高度，无描述也占位 ---------- */
+.cd-desc-wrap {
+    flex: 0 0 var(--desc-h);
+    height: var(--desc-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
 .cd-desc {
     display: inline-block;
-    margin: 0 0 8px;
+    max-width: 100%;
+    margin: 0;
     padding: 2px 8px;
     font-size: 11px;
     line-height: 1.5;
     letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     color: var(--cd-accent);
     background: var(--cd-accent-soft);
     border: 1px solid rgba(124, 147, 255, 0.28);
     border-radius: 999px;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
+}
+
+/* ---------- 时间区：固定高度，居中 ---------- */
+.cd-timer-wrap {
+    flex: 0 0 var(--timer-h);
+    height: var(--timer-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .cd-timer {
@@ -281,12 +331,20 @@ watch(() => [props.autoplay, props.interval], start)
     text-shadow: 0 0 12px rgba(124, 147, 255, 0.35);
 }
 
-/* ---------- 指示器：更小更贴底 ---------- */
+/* ---------- 指示器区：固定高度 ---------- */
+.cd-dots-wrap {
+    flex: 0 0 var(--dots-h);
+    height: var(--dots-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
 .cd-dots {
     display: flex;
     justify-content: center;
     gap: 6px;
-    margin-top: 8px;
 }
 
 .cd-dot {
@@ -311,7 +369,7 @@ watch(() => [props.autoplay, props.interval], start)
     box-shadow: 0 0 10px rgba(124, 147, 255, 0.6);
 }
 
-/* ---------- 箭头：缩小 + 常显低透明 ---------- */
+/* ---------- 箭头 ---------- */
 .cd-arrow {
     position: absolute;
     top: 50%;
@@ -387,7 +445,7 @@ watch(() => [props.autoplay, props.interval], start)
     outline-offset: 2px;
 }
 
-/* ---------- 响应式：窄屏可进一步压扁 ---------- */
+/* ---------- 响应式 ---------- */
 @media (max-width: 992px) {
     .cd-carousel {
         --panel-pad-x: 10px;
@@ -396,8 +454,6 @@ watch(() => [props.autoplay, props.interval], start)
 }
 
 @media (max-width: 768px) {
-
-    /* 小屏时主动隐藏左右箭头，避免挤压时间单元 */
     .cd-arrow {
         display: none;
     }

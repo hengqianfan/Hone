@@ -1,7 +1,8 @@
 import type { Countdown } from '../types/countdown'
 export const countdowns: Countdown[] = [
-    { name: '逆水寒 · 昆仑墟 · 新赛季', desc: '1000分的截至日期', date: 20261013 },
+    { name: '换驾驶证', date: 20261016 },
 
+    { name: '逆水寒 · 昆仑墟 · 新赛季', desc: '1000分的截至日期', date: 20261013 },
     { name: '国庆结束', desc: '苦逼的日子又要开始了', date: 20261007 },
     { name: '逆水寒新区', desc: '0925新区', date: 20260925, },
     // 农历八月初六  

@@ -8,15 +8,15 @@
                 <div class="stat-item">
                     <div class="stat-icon"><i class="iconfont icon-calendar"></i></div>
                     <div class="stat-info">
-                        <div class="stat-count">{{ yearCount }}</div>
-                        <div class="stat-desc">Years</div>
+                        <div class="stat-count">{{ momentsList.length }}</div>
+                        <div class="stat-desc">Total</div>
                     </div>
                 </div>
 
                 <div class="stat-item">
                     <div class="stat-icon"><i class="iconfont icon-img2"></i></div>
                     <div class="stat-info">
-                        <div class="stat-count">{{ momentsList.length }}</div>
+                        <div class="stat-count">{{ momentWithImgCount }}</div>
                         <div class="stat-desc">Moments</div>
                     </div>
                 </div>
@@ -252,6 +252,9 @@ const yearOptions = computed(() => {
 /** 头部统计：有多少个不同年份 */
 const yearCount = computed(() => yearOptions.value.length)
 
+/** 头部统计：有图片的记录数 */
+const momentWithImgCount = computed(() => momentsList.value.filter((item) => hasImages(item)).length)
+
 const monthOptions = computed(() =>
     Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
 )
@@ -298,6 +301,11 @@ function selectYear(y: string) {
 }
 
 function selectMonth(m: string) {
+    // 'all' 表示不做月份过滤，直接放行
+    if (m === 'all') {
+        activeMonth.value = 'all'
+        return
+    }
     if (!monthHasData(m)) return
     activeMonth.value = m
 }
@@ -1293,7 +1301,7 @@ onMounted(() => {
     .stat-item {
         flex: 1 1 100px;
         padding: 10px;
-        gap: 6px;
+        gap: 8px;
         border-radius: 12px;
     }
 

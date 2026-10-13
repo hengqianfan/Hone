@@ -1,105 +1,116 @@
+/* =========================
+   基础容器
+========================= */
 .md-container {
-    border-radius: 10px;
+    border-radius: 12px;
     margin: 16px 0;
     overflow: hidden;
-
+    border: 1px solid transparent;
+    /* 用实色底 + 细边框，不再透明叠色 */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 
     &__title {
-        padding: 8px 12px;
+        padding: 10px 14px;
         font-size: 13px;
         font-weight: 600;
+        letter-spacing: 0.3px;
     }
 
     &__content {
-        padding: 12px;
+        padding: 14px;
         line-height: 1.7;
+        /* 正文保持可读的白，别用纯白刺眼 */
+        color: #e6e6e6;
     }
 
     code {
         margin: 0 3px;
         padding: 3px 6px;
-        border-radius: 5px;
+        border-radius: 6px;
         font-size: 14px;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
+
     }
 }
 
 /* =========================
-   TIP
+   TIP —— 紫色系
 ========================= */
-
 .md-tip {
-    border-color: #42b883;
-    background: #f0faf5;
+    border-color: #4c3d8f;
+    background: #2a2440;
+    /* 实色深紫 */
 
     .md-container__title {
-        background: rgba(66, 184, 131, 0.12);
-        color: #42b883;
-        border: transparent !important;
+        background: #362e55;
+        /* 标题条比容器亮一档 */
+        color: #c4b5fd;
+        border-bottom: 1px solid #4c3d8f;
+    }
+
+    code {
+        background-color: #3f3566 !important;
+        color: #ede9fe !important;
 
     }
 }
 
 /* =========================
-   WARNING
+   WARNING —— 琥珀色系
 ========================= */
-
 .md-warning {
-    border: 1px solid var(--md-container-border-bg);
-    background: var(--md-container-warn-bg);
-
+    border-color: #6b5a1f;
+    background: #3a3213;
 
     .md-container__title {
-        background: var(--md-container-title-bg);
-        color: #f59e0b;
+        background: #4a4018;
+        color: #fcd34d;
+        border-bottom: 1px solid #6b5a1f;
     }
 
     code {
-        background-color: #e3ac4e !important;
-        color: white !important;
-        border: transparent !important;
+        background-color: #524717 !important;
+        color: #fef3c7 !important;
 
     }
 }
 
 /* =========================
-   DANGER
+   DANGER —— 红色系
 ========================= */
-
 .md-danger {
-    border-color: #ef4444;
-    background: #fef2f2;
+    border-color: #7a2b2b;
+    background: #3a1d1d;
 
     .md-container__title {
-        background: rgba(239, 68, 68, 0.12);
-        color: #ef4444;
+        background: #4a2424;
+        color: #fca5a5;
+        border-bottom: 1px solid #7a2b2b;
     }
 
     code {
-        background-color: #ef4444 !important;
-        color: white !important;
-        border: transparent !important;
+        background-color: #522828 !important;
+        color: #fee2e2 !important;
 
     }
 }
 
 /* =========================
-   INFO
+   INFO —— 中性灰
 ========================= */
-
 .md-info {
-    border-color: #3b82f6;
-    background: #eff6ff;
+    border-color: #3f3f3f;
+    background: #262626;
 
     .md-container__title {
-        background: rgba(59, 130, 246, 0.12);
-        color: #3b82f6;
-        background-color: tan;
+        background: #303030;
+        color: #d4d4d4;
+        border-bottom: 1px solid #3f3f3f;
     }
 
     code {
-        background-color: rgba(59, 131, 246, 0.8) !important;
-        color: white !important;
-        border: transparent !important;
+        background-color: #383838 !important;
+        color: #f5f5f5 !important;
+
     }
 }

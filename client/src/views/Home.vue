@@ -50,23 +50,32 @@ const socials: SocialLink[] = [
     {
         label: 'GitHub',
         href: 'https://github.com/your-handle',
-        icon: 'M12 2C6.475 2 2 6.475 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.699-2.782.604-3.369-1.341-3.369-1.341-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.607.069-.607 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.03-2.682-.103-.253-.447-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.56 9.56 0 0 1 12 6.8c.85.004 1.705.115 2.504.337 1.909-1.294 2.748-1.025 2.748-1.025.546 1.377.202 2.394.1 2.647.64.698 1.028 1.591 1.028 2.682 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.138 20.163 22 16.418 22 12c0-5.525-4.475-10-10-10Z',
+        icon: 'github',
     },
+
+
     {
-        label: '邮箱',
-        href: 'mailto:you@example.com',
-        icon: 'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 2v.4l8 5 8-5V6H4Zm16 2.75-7.45 4.66a1 1 0 0 1-1.1 0L4 8.75V18h16V8.75Z',
+        label: 'Heihe',
+        href: 'https://github.com/your-handle',
+        icon: 'heihe',
     },
+
+
     {
-        label: '掘金',
-        href: 'https://juejin.cn/user/your-id',
-        icon: 'M12 2 2 9l10 7 10-7-10-7Zm0 2.32L18.53 9 12 13.68 5.47 9 12 4.32ZM2 15l10 7 10-7-1.7-1.19L12 19.32l-8.3-5.51L2 15Z',
+        label: 'Bilibili',
+        href: 'https://github.com/your-handle',
+        icon: 'bilibili',
     },
+
+
     {
-        label: '博客',
-        href: 'https://your-blog.com',
-        icon: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-2.6a15.6 15.6 0 0 0-1.4-3.5A8.05 8.05 0 0 1 18.9 8ZM12 4c.8 1.1 1.5 2.4 1.9 4h-3.8c.4-1.6 1.1-2.9 1.9-4ZM4.3 14a8.1 8.1 0 0 1 0-4h2.9a17 17 0 0 0 0 4H4.3ZM5.1 16h2.6c.35 1.28.83 2.44 1.4 3.5A8.05 8.05 0 0 1 5.1 16Zm2.6-8H5.1a8.05 8.05 0 0 1 4-3.5A15.6 15.6 0 0 0 7.7 8ZM12 20c-.8-1.1-1.5-2.4-1.9-4h3.8c-.4 1.6-1.1 2.9-1.9 4Zm2.34-6H9.66a15 15 0 0 1 0-4h4.68a15 15 0 0 1 0 4Zm.56 5.5c.57-1.06 1.05-2.22 1.4-3.5h2.6a8.05 8.05 0 0 1-4 3.5Zm1.8-5.5a17 17 0 0 0 0-4h2.9a8.1 8.1 0 0 1 0 4h-2.9Z',
+        label: 'douyin',
+        href: 'https://github.com/your-handle',
+        icon: 'douyin',
     },
+
+
+
 ];
 
 /* ============ 搜索引擎配置 ============ */
@@ -192,7 +201,7 @@ watch(keyword, (v) => {
 /* ============ 推荐项目 ============ */
 const projects: Project[] = [
     {
-        name: 'H-Engine',
+        name: 'HEngine',
         desc: '个人管理系统',
         stars: 128,
         lang: 'Vue',
@@ -271,9 +280,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
                         <div class="pcard__socials">
                             <a v-for="s in socials" :key="s.label" class="psocial" :href="s.href" target="_blank"
                                 rel="noopener noreferrer" :aria-label="s.label" :title="s.label">
-                                <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true">
-                                    <path :d="s.icon" />
-                                </svg>
+                                <i :class="`iconfont icon-${s.icon}`"></i>
                             </a>
                         </div>
                     </div>
@@ -501,7 +508,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     top: -140px;
     left: 50%;
     width: 460px;
-    height: 280px;
+    height: 220px;
     transform: translateX(-50%);
     background: radial-gradient(closest-side, rgba(139, 139, 255, 0.2), transparent 70%);
     pointer-events: none;
@@ -595,14 +602,19 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
 .psocial {
     display: grid;
     place-items: center;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     color: #9a9aa2;
+
     background: rgba(28, 28, 32, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border-radius: 50%;
     transition: color 0.18s ease, background 0.18s ease,
         border-color 0.18s ease, transform 0.18s ease;
+
+    i {
+        font-size: 20px;
+    }
 }
 
 .psocial:hover {
@@ -689,17 +701,7 @@ const avatarText = computed(() => profile.name.trim().charAt(0) || '?');
     // border-radius: 10px;
 }
 
-.scard::before {
-    content: '';
-    position: absolute;
-    top: -120px;
-    left: 50%;
-    width: 360px;
-    height: 200px;
-    transform: translateX(-50%);
-    background: radial-gradient(closest-side, rgba(92, 184, 255, 0.14), transparent 70%);
-    pointer-events: none;
-}
+
 
 /* 输入表单 */
 .sform {

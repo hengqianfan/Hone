@@ -7,8 +7,6 @@
     <div v-if="post" class="post-detail">
         <!-- ===================== 封面头部 ===================== -->
         <header class="hero" :style="heroStyle">
-
-
             <div class="hero-inner">
                 <div class="hero-meta-top">
                     <span v-if="post.series" class="hero-series-badge">
@@ -53,17 +51,36 @@
     <!-- ★ 关键：TOC 移出 .post-detail，摆脱 backdrop-filter 包含块 + overflow 裁剪 -->
     <transition name="toc-fade">
         <aside v-if="post && tocList.length" class="toc">
-            <div class="toc-title">内容速览</div>
+            <div class="toc-title">
+                <span class="toc-title-bar"></span>
+                <span>内容速览</span>
+            </div>
 
             <div class="toc-list">
-                <div v-for="item in tocList" :key="item.id" :class="[
-                    'toc-item',
-                    'level-' + item.level,
-                    { 'is-active': activeTocId === item.id },
-                ]">
-                    <a :href="'#' + item.id" :title="item.text" @click.prevent="scrollToHeading(item.id)">{{
-                        item.text }}</a>
-                </div>
+                <template v-for="item in tocList" :key="item.id">
+                    <div v-show="!isHidden(item)" :class="[
+                        'toc-item',
+                        'level-' + item.level,
+                        {
+                            'is-active': activeTocId === item.id,
+                            'has-children': hasChildren(item),
+                            'is-collapsed': collapsed.has(item.id),
+                        },
+                    ]" :style="{ '--depth': Math.max(0, item.level - 2) }">
+
+                        <!-- 圆点即折叠开关：有子级时点击可折叠，无子级时纯装饰 -->
+                        <component :is="hasChildren(item) ? 'button' : 'span'" class="toc-dot"
+                            :type="hasChildren(item) ? 'button' : undefined"
+                            :aria-label="hasChildren(item) ? (collapsed.has(item.id) ? '展开' : '收起') : undefined"
+                            :aria-expanded="hasChildren(item) ? !collapsed.has(item.id) : undefined"
+                            :aria-hidden="hasChildren(item) ? undefined : 'true'"
+                            @click="hasChildren(item) && toggleCollapse(item.id)" />
+
+                        <a :href="'#' + item.id" :title="item.text" @click.prevent="scrollToHeading(item.id)">
+                            <span class="toc-text">{{ item.text }}</span>
+                        </a>
+                    </div>
+                </template>
             </div>
         </aside>
     </transition>
@@ -105,8 +122,7 @@ const heroStyle = computed(() => {
         }
     }
     return {
-        backgroundImage:
-            'transparent',
+        backgroundImage: 'transparent',
     }
 })
 
@@ -174,6 +190,50 @@ const scrollToHeading = (id: string) => {
 }
 
 /* =========================
+   TOC 折叠 / 展开
+========================= */
+// 被折叠的项 id 集合，默认全部展开（空集合）
+const collapsed = ref<Set<string>>(new Set())
+
+/** 判断 item 是否有子级（仅看紧随其后、level 更深的连续项） */
+const hasChildren = (item: TocItem) => {
+    const list = tocList.value
+    const index = list.indexOf(item)
+    const next = list[index + 1]
+    return !!next && next.level > item.level
+}
+
+/** 该项是否因某个祖先被折叠而隐藏 */
+const isHidden = (item: TocItem) => {
+    const list = tocList.value
+    const index = list.indexOf(item)
+    let minLevel = Infinity
+
+    // 从当前项往前回溯，维护「已遇到的最浅层级」
+    for (let i = index - 1; i >= 0; i--) {
+        const prev = list[i]
+        if (!prev) continue
+        if (prev.level < item.level && prev.level < minLevel) {
+            // prev 是 item 的祖先之一
+            if (collapsed.value.has(prev.id)) return true
+            minLevel = prev.level
+        }
+    }
+    return false
+}
+
+/** 切换折叠 */
+const toggleCollapse = (id: string) => {
+    const next = new Set(collapsed.value)
+    if (next.has(id)) {
+        next.delete(id)
+    } else {
+        next.add(id)
+    }
+    collapsed.value = next
+}
+
+/* =========================
    生命周期
 ========================= */
 onMounted(async () => {
@@ -192,6 +252,7 @@ onBeforeRouteUpdate(async (to) => {
     await nextTick()
     const nextPost = postStore.getPost(to.params.slug as string)
     setDocumentTitle(nextPost?.title ?? '')
+    collapsed.value = new Set()
 
     progress.value = 0
     activeTocId.value = ''
@@ -222,6 +283,13 @@ $toc-fc-active: #ffffff;
 $neo-text: #d4d4d4;
 $neo-text-dim: #8a8a8a;
 $neo-accent: #e0e0e0;
+
+/* 行内元素的垂直对齐基准：与 .toc-text 的行高/字号保持一致 */
+$toc-line-height: 1.45;
+$toc-font-l2: 13.5px;
+$toc-font-l3: 12.5px;
+$toc-font-l4: 11.5px;
+$toc-font-l5: 11px;
 
 /* =========================
    顶部进度条
@@ -288,18 +356,13 @@ $neo-accent: #e0e0e0;
     max-width: 100%;
     margin: 60px auto;
 
-    // padding-bottom: 200px;
     border-radius: 30px;
-    /* 保留圆角裁剪主面板自身的视觉效果 */
     overflow: hidden;
-    // backdrop-filter: blur($glass-blur) saturate(140%);
-    // -webkit-backdrop-filter: blur($glass-blur) saturate(140%);
     border: 1px solid $glass-border;
     box-shadow:
         0 20px 60px rgba(0, 0, 0, 0.65),
         inset 0 1px 0 $glass-highlight;
-    // 为了和侧边栏保持距离让toc不被遮挡
-    transform: translateX(-30px);
+    transform: translateX(-50px);
 }
 
 /* =========================
@@ -314,7 +377,6 @@ $neo-accent: #e0e0e0;
     background-position: center;
     background-repeat: no-repeat;
     overflow: hidden;
-    // background-color: $hero-bg;
     z-index: 0;
 
     &::before {
@@ -340,7 +402,6 @@ $neo-accent: #e0e0e0;
         flex-direction: column;
         gap: 14px;
         z-index: 1;
-
     }
 
     .hero-meta-top {
@@ -496,25 +557,22 @@ $neo-accent: #e0e0e0;
     position: relative;
     padding: 28px 30px 10px;
     background: $panel-bg;
+    // background: rgba(26, 26, 30, 0.6);
     z-index: 100;
-
 }
 
 /* =========================
-   TOC（独立 fixed，脱离 backdrop-filter 祖先）
+   TOC 页面大纲
 ========================= */
 .toc {
     position: fixed;
     top: 60px;
-    /* 900 宽正文右边缘 + 20px 间距（ 原设计 ） */
-    // 因利用 transform 移动了.post-detail ，所以不需再加上的间距了
-    left: calc(50% + 450px - 10px);
-    width: 220px;
-    max-width: 220px;
+    left: calc(50% + 450px - 30px);
+    width: 240px;
+    max-width: 240px;
     max-height: calc(100vh - 100px);
-    padding: 20px;
+    padding: 18px 16px;
     border-radius: 20px;
-    font-size: 12px;
     display: flex;
     flex-direction: column;
     background: $toc-bg;
@@ -526,69 +584,319 @@ $neo-accent: #e0e0e0;
         inset 0 1px 0 $glass-highlight;
     z-index: 100;
 
+    /* ---------- 标题 ---------- */
     .toc-title {
-        font-weight: 600;
-        font-size: 16px;
-        margin-bottom: 10px;
-        color: $neo-text;
+        display: flex;
+        align-items: center;
+        gap: 8px;
         flex-shrink: 0;
+        margin-bottom: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        color: $neo-text;
         text-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+
+        .toc-title-bar {
+            width: 3px;
+            height: 14px;
+            border-radius: 999px;
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.7),
+                    rgba(255, 255, 255, 0.15));
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
+        }
     }
 
+    /* ---------- 列表容器 ---------- */
     .toc-list {
+        position: relative;
         overflow-y: auto;
         overflow-x: hidden;
-        padding-bottom: 20px;
+        padding: 2px 0 8px;
         scrollbar-width: none;
 
         &::-webkit-scrollbar {
             display: none;
         }
+
+        /* 左侧层级引导线 */
+        &::before {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 6px;
+            bottom: 6px;
+            width: 1px;
+            background: linear-gradient(180deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.12) 12%,
+                    rgba(255, 255, 255, 0.12) 88%,
+                    transparent);
+            pointer-events: none;
+        }
     }
 
+    /* ---------- 单项 ---------- */
     .toc-item {
-        margin: 5px 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        padding: 2px 0;
-
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        margin: 8px 0;
+        padding-left: calc(var(--depth, 0) * 12px);
 
         a {
-            color: $toc-fc;
-
-            text-decoration: none;
-            transition: color 0.2s ease;
+            position: relative;
+            flex: 1;
+            min-width: 0;
             display: block;
+            padding: 0;
+            border-radius: 8px;
+            color: $toc-fc;
+            text-decoration: none;
+            line-height: $toc-line-height;
+            transition:
+                color 0.2s ease,
+                background 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        /* 文字块：与圆点共享同一行高，保证首行对齐 */
+        .toc-text {
+            display: block;
+            line-height: $toc-line-height;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
 
         a:hover {
             color: $toc-fc-active;
+            transform: translateX(2px);
         }
 
-        &.is-active a {
-            color: $toc-fc-active;
-            font-weight: 600;
+        /* =========================================================
+           圆点：既是层级节点，也是折叠开关
+           - 与 .toc-text 使用相同的 line-height 和 font-size，
+             再配合 align-items: center，让圆点与首行文字视觉居中
+           - 无子级：纯装饰，不可点击
+           - 有子级：可点击，hover 时出现环形反馈
+           - 收起时：变成空心圈（内圈镂空）
+           ========================================================= */
+        .toc-dot {
+            flex-shrink: 0;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            /* 关键：宽度 16px，用行高撑起与文字一致的高度 */
+            width: 16px;
+            min-width: 16px;
+            height: 1em;
+            padding: 0;
+            border: 0;
+            outline: none;
+            border-radius: 50%;
+            background: transparent;
+            color: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            -webkit-tap-highlight-color: transparent;
+            /* 让圆点自身的基线盒与文字首行重心一致 */
+            align-self: center;
 
+            /* 内层实心圆点（绝对定位居中，避免受行高影响错位） */
+            &::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.28);
+                transform: translate(-50%, -50%);
+                transition:
+                    width 0.2s ease,
+                    height 0.2s ease,
+                    background 0.2s ease,
+                    transform 0.2s ease,
+                    box-shadow 0.2s ease;
+            }
+
+            /* hover 时的环形反馈（仅对有子级的按钮生效） */
+            &::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0);
+                transform: translate(-50%, -50%);
+                transition: background 0.2s ease, box-shadow 0.2s ease;
+                pointer-events: none;
+            }
         }
-    }
 
-    .level-2 {
-        padding-left: 0;
-        font-size: 13px;
-        font-weight: 500;
-    }
+        /* 有子级的圆点：可点击 */
+        &.has-children>.toc-dot {
+            cursor: pointer;
 
-    .level-3 {
-        padding-left: 12px;
-    }
+            &:hover::after {
+                background: rgba(255, 255, 255, 0.08);
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+            }
 
-    .level-4 {
-        padding-left: 24px;
-    }
+            &:hover::before {
+                background: rgba(255, 255, 255, 0.6);
+                transform: translate(-50%, -50%) scale(1.1);
+            }
 
-    .level-5 {
-        padding-left: 36px;
+            &:focus-visible::after {
+                box-shadow:
+                    inset 0 0 0 2px rgba(255, 255, 255, 0.35),
+                    0 0 10px rgba(255, 255, 255, 0.25);
+            }
+        }
+
+        /* 收起态：圆点变空心圈，暗示「可展开」 */
+        &.has-children.is-collapsed>.toc-dot::before {
+            width: 7px;
+            height: 7px;
+            background: transparent;
+            box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+        }
+
+        /* ---------- 各层级差异化（字体 + 圆点尺寸，行高统一） ---------- */
+
+        &.level-2 {
+            a {
+                font-size: $toc-font-l2;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 0.92);
+            }
+
+            .toc-dot::before {
+                width: 7px;
+                height: 7px;
+                background: rgba(255, 255, 255, 0.5);
+            }
+
+            &.has-children.is-collapsed>.toc-dot::before {
+                background: transparent;
+                box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.75);
+            }
+        }
+
+        &.level-3 {
+            a {
+                font-size: $toc-font-l3;
+                font-weight: 400;
+                color: rgba(255, 255, 255, 0.72);
+            }
+
+            .toc-dot::before {
+                width: 5px;
+                height: 5px;
+                background: rgba(255, 255, 255, 0.32);
+            }
+
+            &.has-children.is-collapsed>.toc-dot::before {
+                background: transparent;
+                box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+            }
+        }
+
+        &.level-4 {
+            a {
+                font-size: $toc-font-l4;
+                font-weight: 400;
+                color: rgba(255, 255, 255, 0.55);
+                letter-spacing: 0.2px;
+            }
+
+            .toc-dot::before {
+                width: 4px;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.24);
+            }
+
+            &.has-children.is-collapsed>.toc-dot::before {
+                width: 6px;
+                height: 6px;
+                background: transparent;
+                box-shadow: inset 0 0 0 1.2px rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        &.level-5,
+        &.level-6 {
+            a {
+                font-size: $toc-font-l5;
+                font-weight: 400;
+                color: rgba(255, 255, 255, 0.42);
+            }
+
+            .toc-dot::before {
+                width: 6px;
+                height: 1px;
+                border-radius: 1px;
+                background: rgba(255, 255, 255, 0.22);
+            }
+
+            &.has-children.is-collapsed>.toc-dot::before {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: transparent;
+                box-shadow: inset 0 0 0 1.2px rgba(255, 255, 255, 0.28);
+            }
+        }
+
+        /* ---------- 激活态 ---------- */
+        &.is-active {
+            a {
+                color: #ffffff;
+                font-weight: 600;
+                background: linear-gradient(90deg,
+                        rgba(255, 255, 255, 0.1),
+                        rgba(255, 255, 255, 0.02));
+                transform: translateX(2px);
+            }
+
+            >.toc-dot::before {
+                background: #ffffff;
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
+                transform: translate(-50%, -50%) scale(1.15);
+            }
+
+            /* 激活项若处于收起态，仍保持空心视觉但描边更亮 */
+            &.has-children.is-collapsed>.toc-dot::before {
+                background: transparent;
+                box-shadow:
+                    inset 0 0 0 1.6px #ffffff,
+                    0 0 10px rgba(255, 255, 255, 0.4);
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            a::before {
+                content: '';
+                position: absolute;
+                left: -8px;
+                top: 50%;
+                width: 2px;
+                height: 60%;
+                border-radius: 999px;
+                background: linear-gradient(180deg,
+                        rgba(255, 255, 255, 0.9),
+                        rgba(255, 255, 255, 0.25));
+                box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+                transform: translateY(-50%);
+            }
+        }
     }
 }
 
@@ -604,7 +912,7 @@ $neo-accent: #e0e0e0;
     transform: translateX(12px);
 }
 
-/* 屏幕空间不足时隐藏 TOC（作用于外层，不受 .post-detail 影响） */
+/* 屏幕空间不足时隐藏 TOC */
 @media (max-width: 1400px) {
     .toc {
         display: none;

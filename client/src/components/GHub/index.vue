@@ -2,13 +2,15 @@
     <Teleport to="body">
         <div class="ghub">
 
-            <!-- Logo -->
-            <button class="ghub-logo" :class="{ 'is-open': isLogoPanelOpen }" type="button" aria-label="打开个人面板"
-                @click="toggleLogoPanel">
-                <img src="/favicon.ico" alt="logo" />
-            </button>
+            <!-- ============ Logo 独立区块（与导航完全解耦） ============ -->
+            <div class="ghub-logo-wrap">
+                <button class="ghub-logo" :class="{ 'is-open': activePanel === 'logo' }" type="button"
+                    aria-label="打开个人面板" :aria-expanded="activePanel === 'logo'" @click="togglePanel('logo')">
+                    <img src="/favicon.ico" alt="logo" />
+                </button>
+            </div>
 
-            <!-- 主导航按钮组 -->
+            <!-- ============ 主导航胶囊 ============ -->
             <nav class="ghub-nav">
                 <div v-for="item in navItems" :key="item.name" class="ghub-item" :class="{
                     active: isActive(item),
@@ -38,15 +40,16 @@
 
                 <!-- 设置按钮 -->
                 <div class="ghub-item">
-                    <button class="ghub-button ghub-setting" :class="{ 'is-open': isSettingPanelOpen }" type="button"
-                        aria-label="打开设置" @click="toggleSettingPanel">
+                    <button class="ghub-button ghub-setting" :class="{ 'is-open': activePanel === 'setting' }"
+                        type="button" aria-label="打开设置" :aria-expanded="activePanel === 'setting'"
+                        @click="togglePanel('setting')">
                         <i class="iconfont icon-settings"></i>
                         <span class="ghub-tooltip">设置</span>
                     </button>
                 </div>
             </nav>
 
-            <!-- 回到顶部 -->
+            <!-- ============ 回到顶部 ============ -->
             <div class="ghub-top-slot">
                 <Transition name="ghub-top">
                     <button v-if="showBackTop" class="ghub-top-button" type="button" aria-label="回到顶部"
@@ -59,10 +62,10 @@
         </div>
     </Teleport>
 
-    <!-- Logo 面板 -->
+    <!-- ============ Logo 面板 ============ -->
     <Teleport to="body">
         <Transition name="ghub-panel">
-            <div v-if="isLogoPanelOpen" class="ghub-panel-mask" @click="closeLogoPanel" @mouseleave="closeLogoPanel">
+            <div v-if="activePanel === 'logo'" class="ghub-panel-mask" @click="closePanel" @mouseleave="closePanel">
                 <div class="ghub-panel" @click.stop>
                     <div class="ghub-panel-header">
                         <img src="/favicon.ico" alt="logo" class="ghub-panel-avatar" @click="goHome" />
@@ -79,6 +82,7 @@
                             这里是衡千帆的独立博客网站。
                         </p>
                     </div>
+
                     <div class="countdown-container">
                         <Countdown :list="countdowns" />
                     </div>
@@ -95,10 +99,10 @@
         </Transition>
     </Teleport>
 
-    <!-- 设置面板 -->
+    <!-- ============ 设置面板 ============ -->
     <Teleport to="body">
         <Transition name="ghub-panel">
-            <div v-if="isSettingPanelOpen" class="ghub-panel-mask" @click="closeSettingPanel">
+            <div v-if="activePanel === 'setting'" class="ghub-panel-mask" @click="closePanel">
                 <div class="ghub-panel ghub-setting-panel" @click.stop>
 
                     <div class="ghub-setting-header">
@@ -119,7 +123,6 @@
                                 {{ hasDir ? '重新选择目录' : '选择本地文件夹' }}
                             </button>
 
-                            <!-- 只要记得目录就允许恢复，不受 localList 是否为空影响 -->
                             <button v-if="hasDir" type="button" class="ghub-setting-btn" @click="resumeLast">
                                 继续使用上次目录
                             </button>
@@ -160,11 +163,12 @@
 
                     <div class="ghub-setting-group">
                         <div class="ghub-setting-label">自动播放</div>
-                        <div class="ghub-setting-row">
-                            <span>切换间隔（秒）</span>
+
+                        <div class="ghub-setting-row ghub-setting-row--slider">
+                            <span class="ghub-setting-row-label">切换间隔（秒）</span>
                             <input v-model.number="playSpeed" class="ghub-setting-range" type="range" min="1" max="120"
                                 step="1" :disabled="store.pinned" />
-                            <span>{{ playSpeed }}s</span>
+                            <span class="ghub-setting-value">{{ playSpeed }}s</span>
                         </div>
                     </div>
 
@@ -176,7 +180,6 @@
                         </label>
                     </div>
 
-                    <!-- 新增：站点管理入口 -->
                     <div class="ghub-setting-group">
                         <div class="ghub-setting-label">站点管理</div>
 
@@ -188,7 +191,6 @@
                             </button>
                         </div>
                     </div>
-
 
                 </div>
             </div>
@@ -258,56 +260,36 @@ interface Social {
 const socials: Social[] = [
     { name: 'GitHub', icon: 'iconfont icon-github', url: 'https://github.com' },
     { name: 'Bilibili', icon: 'iconfont icon-bilibili', url: 'https://www.bilibili.com' },
-    { name: 'Email', icon: 'iconfont icon-email', url: 'mailto:you@example.com' },
+    // { name: 'Email', icon: 'iconfont icon-email', url: 'mailto:you@example.com' },
 ]
 
-/* ---------------- Logo 面板 ---------------- */
+/* =========================================================
+ * 面板统一状态源：'logo' | 'setting' | null
+ * Logo 与 设置按钮各自独立触发，互不耦合
+ * ========================================================= */
 
-const isLogoPanelOpen = ref(false)
+type PanelName = 'logo' | 'setting' | null
 
-const openLogoPanel = () => {
-    isLogoPanelOpen.value = true
-    isSettingPanelOpen.value = false
+const activePanel = ref<PanelName>(null)
+
+/** 打开 / 切换指定面板（关闭其它面板） */
+const togglePanel = (name: Exclude<PanelName, null>) => {
+    activePanel.value = activePanel.value === name ? null : name
     openedMenu.value = null
 }
 
+/** 关闭所有面板 */
+const closePanel = () => {
+    activePanel.value = null
+}
 
 /* ---------------- 设置面板内的跳转 ---------------- */
 
 const goSitesManage = () => {
-    // 用 path 跳转；若路由有 name，可改成 router.push({ name: 'SitesManage' })
-    if (route.path === '/sitesManage') {
-        closeSettingPanel()
-        return
+    if (route.path !== '/sitesManage') {
+        router.push({ path: '/sitesManage' })
     }
-    router.push({ path: '/sitesManage' })
-    closeSettingPanel()
-}
-
-const toggleLogoPanel = () => {
-    isLogoPanelOpen.value = !isLogoPanelOpen.value
-}
-
-const closeLogoPanel = () => {
-    isLogoPanelOpen.value = false
-}
-
-/* ---------------- 设置面板 ---------------- */
-
-const isSettingPanelOpen = ref(false)
-
-const openSettingPanel = () => {
-    isSettingPanelOpen.value = true
-    isLogoPanelOpen.value = false
-    openedMenu.value = null
-}
-
-const toggleSettingPanel = () => {
-    isSettingPanelOpen.value = !isSettingPanelOpen.value
-}
-
-const closeSettingPanel = () => {
-    isSettingPanelOpen.value = false
+    closePanel()
 }
 
 /* ---------------- 设置项 ---------------- */
@@ -374,7 +356,7 @@ const isChildActive = (child: GhubChild) =>
 
 const goHome = () => {
     router.push({ name: 'Home' })
-    closeLogoPanel()
+    closePanel()
 }
 
 /* ---------------- 回到顶部 ---------------- */
@@ -402,8 +384,7 @@ const onDocumentClick = (event: MouseEvent) => {
 const onKeydown = (event: KeyboardEvent) => {
     if (event.key !== 'Escape') return
     openedMenu.value = null
-    isLogoPanelOpen.value = false
-    isSettingPanelOpen.value = false
+    activePanel.value = null
 }
 
 /* ---------------- 生命周期 ---------------- */
@@ -415,24 +396,17 @@ onMounted(async () => {
 
     checkScroll()
 
-    // 恢复上次目录句柄（静默，不弹授权框）
     await tryRestore()
 
-    // 恢复完成后把结果同步给 store
     if (localList.value.length) {
         store.clearLocalWallpapers()
         store.addLocalWallpapers(localList.value)
     }
 })
 
-/**
- * 本地列表变化 → 同步 store
- * 先清空再合并，避免重新扫描时旧 blob 被再次 revoke / 重复叠加
- */
 watch(
     () => localList.value,
     list => {
-        // store 中若已是同一批 blob，则无需反复清空重建
         const sameLength = store.localWallpapers.length === list.length
         const sameIds =
             sameLength &&
@@ -449,7 +423,6 @@ onBeforeUnmount(() => {
     window.removeEventListener('scroll', checkScroll)
     document.removeEventListener('click', onDocumentClick)
     window.removeEventListener('keydown', onKeydown)
-    // 不 releaseAll()：壁纸全站共享，组件卸载不应回收 blob
 })
 
 /* ---------------- 路由变化关闭菜单 ---------------- */
@@ -458,37 +431,32 @@ watch(
     () => route.fullPath,
     () => {
         openedMenu.value = null
+        activePanel.value = null
     }
 )
 </script>
-
-<style lang="scss" scoped>
-/* 样式与原文件完全一致，此处略 —— 你原有的 <style> 原样保留即可 */
-</style>
-
 
 <style lang="scss" scoped>
 /* =========================================================
  * 设计令牌（全部变量集中在此，黑透玻璃风格）
  * ========================================================= */
 
-/* ---------- 尺寸 ---------- */
+/* ---------- 尺寸：拆分独立令牌，互不耦合 ---------- */
 
-$ghub-size: 45px;
+$logo-size: 45px; // Logo 独立尺寸
+$nav-item-size: 30px; // 导航按钮尺寸
+$nav-size: 45px; // 导航胶囊宽度基准
+$top-size: 45px; // 回到顶部尺寸
 
 /* ---------- 玻璃底色（黑透） ---------- */
 
-// Logo / 回到顶部 圆形按钮背景
 $ghub-logo-bg: rgba(18, 20, 26, 0.55);
 $ghub-logo-bg-hover: rgba(28, 31, 40, 0.72);
 
-// 导航胶囊整体背景
 $ghub-nav-bg: rgba(14, 16, 21, 0.5);
 
-// 面板背景（Logo 面板 / 设置面板）
 $ghub-panel-bg: rgba(16, 18, 24, 0.72);
 
-// 面板内小分组 / 内嵌卡片背景
 $ghub-card-bg: rgba(255, 255, 255, 0.06);
 $ghub-card-bg-strong: rgba(255, 255, 255, 0.1);
 
@@ -523,33 +491,23 @@ $ghub-active-border: rgba(79, 156, 255, 0.45);
 
 $ghub-logo-opacity-active: 0.7;
 
-/* ---------- 轻量阴影（仅少量保留） ---------- */
+/* ---------- 轻量阴影 ---------- */
 
-// 通用轻投影：极低透明度，用于圆形按钮浮起
 $ghub-shadow-soft: 0 4px 14px rgba(0, 0, 0, 0.22);
-
-// 弹层轻投影：面板 / 子菜单 / tooltip
 $ghub-shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.3);
-
-
 
 /* ---------- 层级 ---------- */
 
 $ghub-z: 1000;
-
-
 
 /* =========================================================
  * 根节点：贴右侧垂直居中
  * ========================================================= */
 
 .ghub {
-
     position: fixed;
-
     right: 15px;
     top: 50%;
-
     z-index: 1001;
 
     display: flex;
@@ -573,29 +531,31 @@ $ghub-z: 1000;
     }
 }
 
-
 /* =========================================================
- * Logo
+ * Logo 独立区块：完全与导航解耦
+ * 独立尺寸、独立样式、独立状态
  * ========================================================= */
 
-.ghub-logo {
-
+.ghub-logo-wrap {
     position: relative;
-
-
-    width: $ghub-size;
-    height: $ghub-size;
-
+    width: $logo-size;
+    height: $logo-size;
     flex-shrink: 0;
+}
+
+.ghub-logo {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
 
     padding: 0;
 
     border: 1px solid $ghub-border;
-
     border-radius: 50%;
 
     background: $ghub-logo-bg;
-
 
     box-shadow: $ghub-shadow-soft;
 
@@ -608,43 +568,35 @@ $ghub-z: 1000;
     transition:
         transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
         background 0.25s ease,
-        border-color 0.25s ease;
+        border-color 0.25s ease,
+        opacity 0.25s ease;
 
     img {
-
         width: 100%;
         height: 100%;
-
         padding: 5px;
-
         border-radius: 50%;
-
         display: block;
     }
 
     &:hover {
-
         transform: scale(1.1);
-
         background: $ghub-logo-bg-hover;
-
         border-color: $ghub-border-strong;
     }
 
+    /* Logo 打开态：仅作用于自身，与设置按钮无关 */
     &.is-open {
         opacity: $ghub-logo-opacity-active;
-        transform:
-            rotate(90deg) scale(1.06);
+        transform: rotate(90deg) scale(1.06);
     }
 }
-
 
 /* =========================================================
  * 主导航胶囊
  * ========================================================= */
 
 .ghub-nav {
-
     position: relative;
 
     display: flex;
@@ -656,36 +608,27 @@ $ghub-z: 1000;
     padding: 9px 7px;
 
     border: 1px solid $ghub-border;
-
     border-radius: 999px;
 
     background: $ghub-nav-bg;
-
-
 }
-
 
 /* =========================================================
  * 单个导航
  * ========================================================= */
 
 .ghub-item {
-
     position: relative;
-
-    width: 30px;
-    height: 30px;
-
+    width: $nav-item-size;
+    height: $nav-item-size;
     flex-shrink: 0;
 }
-
 
 /* =========================================================
  * 导航按钮
  * ========================================================= */
 
 .ghub-button {
-
     position: relative;
 
     width: 100%;
@@ -710,25 +653,17 @@ $ghub-z: 1000;
         background 0.25s ease,
         transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-    /* 2 秒一次，无限循环 */
     i {
-
         font-size: 16px;
-
         line-height: 1;
-
         transition:
             transform 0.25s ease,
             color 0.25s ease;
     }
 
-
     &:hover {
-
         color: $ghub-option-fc-hover;
-
         background: $ghub-option-bg-hover;
-
         transform: scale(1.08);
 
         >i {
@@ -737,20 +672,14 @@ $ghub-z: 1000;
     }
 }
 
-
 /* =========================================================
  * 当前路由
  * ========================================================= */
 
 .ghub-item.active {
-
     .ghub-button {
-
         color: $ghub-option-fc-active;
-
         background: $ghub-active;
-
-
 
         >i {
             color: $ghub-option-fc-active;
@@ -758,15 +687,12 @@ $ghub-z: 1000;
     }
 }
 
-
 /* =========================================================
  * 有子菜单
  * ========================================================= */
 
 .ghub-item.is-expanded {
-
     .ghub-button {
-
         background: $ghub-option-bg-active;
 
         i {
@@ -782,13 +708,11 @@ $ghub-z: 1000;
     }
 }
 
-
 /* =========================================================
  * Tooltip（向左弹出）
  * ========================================================= */
 
 .ghub-tooltip {
-
     position: absolute;
 
     right: calc(100% + 12px);
@@ -801,12 +725,8 @@ $ghub-z: 1000;
     white-space: nowrap;
 
     color: $ghub-text-strong;
-
     background: rgba(12, 14, 19, 0.92);
-
     border: 1px solid $ghub-border-strong;
-
-
 
     box-shadow: $ghub-shadow-pop;
 
@@ -817,8 +737,7 @@ $ghub-z: 1000;
 
     opacity: 0;
 
-    transform:
-        translateY(-50%) translateX(5px) scale(0.92);
+    transform: translateY(-50%) translateX(5px) scale(0.92);
 
     transition:
         opacity 0.2s ease,
@@ -827,7 +746,6 @@ $ghub-z: 1000;
     z-index: 9050;
 
     &::before {
-
         content: '';
 
         position: absolute;
@@ -839,35 +757,28 @@ $ghub-z: 1000;
         height: 7px;
 
         background: rgba(12, 14, 19, 0.92);
-
         border-right: 1px solid $ghub-border-strong;
         border-top: 1px solid $ghub-border-strong;
 
-        transform:
-            translateY(-50%) rotate(45deg);
+        transform: translateY(-50%) rotate(45deg);
     }
 }
 
-
 .ghub-button:hover .ghub-tooltip {
-
     opacity: 1;
-
-    transform:
-        translateY(-50%) translateX(0) scale(1);
+    transform: translateY(-50%) translateX(0) scale(1);
 }
-
 
 /* =========================================================
  * 子菜单（向左弹出）
  * ========================================================= */
 
 .ghub-submenu {
-
     position: absolute;
 
     right: calc(100% + 20px);
     top: 50%;
+
     min-width: 160px;
 
     padding: 9px;
@@ -875,42 +786,33 @@ $ghub-z: 1000;
     border-radius: 16px;
 
     border: 1px solid $ghub-border;
-
     background: rgba(16, 18, 24, 0.78);
-
-
 
     box-shadow: $ghub-shadow-pop;
 
-    transform:
-        translateY(-50%) translateX(0);
+    transform: translateY(-50%) translateX(0);
 
     z-index: 9010;
 }
-
 
 /* =========================================================
  * 子菜单标题
  * ========================================================= */
 
 .ghub-submenu-title {
-
     padding: 5px 9px 8px;
 
     color: $ghub-text-muted;
 
     font-size: 11px;
-
     letter-spacing: 0.5px;
 }
-
 
 /* =========================================================
  * 子菜单按钮
  * ========================================================= */
 
 .ghub-submenu-item {
-
     width: 100%;
 
     min-height: 30px;
@@ -918,11 +820,9 @@ $ghub-z: 1000;
     padding: 0 10px;
 
     border: 0;
-
     border-radius: 10px;
 
     background: transparent;
-
     color: $ghub-text;
 
     cursor: pointer;
@@ -933,7 +833,6 @@ $ghub-z: 1000;
     gap: 10px;
 
     font-size: 12px;
-
     text-align: left;
 
     transition:
@@ -942,57 +841,36 @@ $ghub-z: 1000;
         transform 0.2s ease;
 
     i {
-
         width: 18px;
-
         flex-shrink: 0;
-
         font-size: 17px;
-
         text-align: center;
     }
 
-
     span {
-
         flex: 1;
-
         overflow: hidden;
-
         white-space: nowrap;
-
         text-overflow: ellipsis;
     }
 
-
     &:hover {
-
         color: $ghub-active;
-
         background: rgba(255, 255, 255, 0.1);
-
         transform: translateX(-2px);
     }
 
-
     &.active {
-
         color: $ghub-active;
-
         background: $ghub-active-bg;
-
         font-weight: 500;
     }
 }
 
-
 .ghub-external {
-
     opacity: 0.45;
-
     font-size: 12px !important;
 }
-
 
 /* =========================================================
  * 子菜单动画（从右向左滑出）
@@ -1000,30 +878,22 @@ $ghub-z: 1000;
 
 .ghub-submenu-enter-active,
 .ghub-submenu-leave-active {
-
     transition:
         opacity 0.22s ease,
         transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-
 .ghub-submenu-enter-from,
 .ghub-submenu-leave-to {
-
     opacity: 0;
-
-    transform:
-        translateY(-50%) translateX(10px) scale(0.94);
+    transform: translateY(-50%) translateX(10px) scale(0.94);
 }
 
-
 /* =========================================================
- * 设置按钮
+ * 设置按钮：仅设置按钮自身的打开态，与 Logo 解耦
  * ========================================================= */
 
 .ghub-setting {
-
-    /* 基础态：复用 .ghub-button 的所有视觉与交互 */
     i {
         font-size: 16px;
     }
@@ -1031,43 +901,34 @@ $ghub-z: 1000;
     /* 面板打开态：缩小一半 + 隐藏图标 + 激活色背景 */
     &.is-open,
     &.is-open:hover {
-
         transform: scale(0.5);
-
         background: $ghub-option-bg-active;
 
-        /* 隐藏图标（含 hover 时的放大） */
         >i {
             display: none;
         }
 
-        /* 打开时不再显示 tooltip */
         .ghub-tooltip {
             display: none;
         }
     }
 }
 
-
 /* =========================================================
  * 回到顶部：占位槽 + 绝对定位按钮
  * ========================================================= */
 
 .ghub-top-slot {
-
     position: relative;
 
-    width: $ghub-size;
-    height: $ghub-size;
+    width: $top-size;
+    height: $top-size;
 
     flex-shrink: 0;
 }
 
-
 .ghub-top-button {
-
     position: absolute;
-
     inset: 0;
 
     width: 100%;
@@ -1076,14 +937,10 @@ $ghub-z: 1000;
     padding: 0;
 
     border: 1px solid $ghub-border;
-
     border-radius: 50%;
 
     color: $ghub-text;
-
     background: $ghub-logo-bg;
-
-
 
     cursor: pointer;
 
@@ -1101,19 +958,13 @@ $ghub-z: 1000;
         font-size: 16px;
     }
 
-
     &:hover {
-
         color: $ghub-text-strong;
-
         background: $ghub-active;
-
         border-color: $ghub-active-border;
-
         transform: scale(1.08);
     }
 }
-
 
 /* =========================================================
  * 回到顶部动画
@@ -1121,29 +972,22 @@ $ghub-z: 1000;
 
 .ghub-top-enter-active,
 .ghub-top-leave-active {
-
     transition:
         opacity 0.25s ease,
         transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-
 .ghub-top-enter-from,
 .ghub-top-leave-to {
-
     opacity: 0;
-
-    transform:
-        translateY(6px) scale(0.72);
+    transform: translateY(6px) scale(0.72);
 }
-
 
 /* =========================================================
  * 面板遮罩（Logo / 设置共用）
  * ========================================================= */
 
 .ghub-panel-mask {
-
     position: fixed;
 
     inset: 0;
@@ -1158,16 +1002,13 @@ $ghub-z: 1000;
     padding-right: 75px;
 
     background: rgba(0, 0, 0, 0.4);
-
 }
-
 
 /* =========================================================
  * 面板
  * ========================================================= */
 
 .ghub-panel {
-
     width: 320px;
 
     max-width: calc(100vw - 100px);
@@ -1177,24 +1018,18 @@ $ghub-z: 1000;
     border-radius: 18px;
 
     border: 1px solid $ghub-border;
-
     background: $ghub-panel-bg;
-
 
     color: $ghub-text;
 
     box-shadow: $ghub-shadow-pop;
 }
 
-
-
-
 /* =========================================================
  * 面板头部
  * ========================================================= */
 
 .ghub-panel-header {
-
     display: flex;
     align-items: center;
 
@@ -1203,9 +1038,7 @@ $ghub-z: 1000;
     margin-bottom: 16px;
 }
 
-
 .ghub-panel-avatar {
-
     width: 48px;
     height: 48px;
 
@@ -1214,24 +1047,19 @@ $ghub-z: 1000;
     border-radius: 50%;
 
     background: $ghub-card-bg-strong;
-
     border: 1px solid $ghub-border-strong;
 
     cursor: pointer;
 
-    transition:
-        transform 0.25s ease;
+    transition: transform 0.25s ease;
 
     &:hover {
         transform: scale(1.08);
     }
 }
 
-
 .ghub-panel-site {
-
     h3 {
-
         margin: 0;
 
         color: $ghub-text-strong;
@@ -1242,9 +1070,7 @@ $ghub-z: 1000;
         letter-spacing: 1px;
     }
 
-
     p {
-
         margin: 5px 0 0;
 
         color: $ghub-text-muted;
@@ -1253,29 +1079,24 @@ $ghub-z: 1000;
     }
 }
 
-
 /* =========================================================
  * 个人介绍
  * ========================================================= */
 
 .ghub-panel-profile {
-
     padding: 12px 14px;
 
     border-radius: 11px;
 
     background: $ghub-card-bg;
-
     border: 1px solid $ghub-border;
 
     p {
-
         margin: 0;
 
         color: $ghub-text;
 
         font-size: 13px;
-
         line-height: 1.7;
     }
 }
@@ -1286,16 +1107,13 @@ $ghub-z: 1000;
     border: 1px solid $ghub-border;
     margin-top: 16px;
     border-radius: 11px;
-
 }
-
 
 /* =========================================================
  * 社交
  * ========================================================= */
 
 .ghub-panel-socials {
-
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1305,7 +1123,6 @@ $ghub-z: 1000;
     margin-top: 18px;
 
     a {
-
         position: relative;
 
         width: 40px;
@@ -1314,9 +1131,7 @@ $ghub-z: 1000;
         border-radius: 50%;
 
         color: $ghub-text;
-
         background: $ghub-card-bg;
-
         border: 1px solid $ghub-border;
 
         text-decoration: none;
@@ -1335,9 +1150,7 @@ $ghub-z: 1000;
             font-size: 21px;
         }
 
-
         span {
-
             position: absolute;
 
             bottom: calc(100% + 8px);
@@ -1350,55 +1163,41 @@ $ghub-z: 1000;
             white-space: nowrap;
 
             color: $ghub-text-strong;
-
             background: rgba(12, 14, 19, 0.92);
-
             border: 1px solid $ghub-border-strong;
 
             font-size: 10px;
 
             opacity: 0;
-
             pointer-events: none;
 
-            transform:
-                translateX(-50%) translateY(4px);
+            transform: translateX(-50%) translateY(4px);
 
             transition:
                 opacity 0.2s ease,
                 transform 0.2s ease;
         }
 
-
         &:hover {
-
             color: $ghub-active;
-
             background: $ghub-card-bg-strong;
-
             border-color: $ghub-active-border;
 
-            transform:
-                translateY(-3px) scale(1.08);
+            transform: translateY(-3px) scale(1.08);
 
             span {
-
                 opacity: 1;
-
-                transform:
-                    translateX(-50%) translateY(0);
+                transform: translateX(-50%) translateY(0);
             }
         }
     }
 }
-
 
 /* =========================================================
  * 设置面板专用样式
  * ========================================================= */
 
 .ghub-setting-panel {
-
     width: 340px;
 
     max-height: calc(100vh - 140px);
@@ -1406,9 +1205,7 @@ $ghub-z: 1000;
     overflow-y: auto;
 }
 
-
 .ghub-setting-header {
-
     display: flex;
     align-items: center;
 
@@ -1418,12 +1215,10 @@ $ghub-z: 1000;
 
     i {
         font-size: 20px;
-
         color: $ghub-active;
     }
 
     h3 {
-
         margin: 0;
 
         color: $ghub-text-strong;
@@ -1435,15 +1230,12 @@ $ghub-z: 1000;
     }
 }
 
-
 .ghub-setting-group {
-
     padding: 12px 14px;
 
     border-radius: 11px;
 
     background: $ghub-card-bg;
-
     border: 1px solid $ghub-border;
 
     &+& {
@@ -1451,21 +1243,16 @@ $ghub-z: 1000;
     }
 }
 
-
 .ghub-setting-label {
-
     margin-bottom: 10px;
 
     color: $ghub-text-muted;
 
     font-size: 11px;
-
     letter-spacing: 0.5px;
 }
 
-
 .ghub-setting-row {
-
     display: flex;
     align-items: center;
 
@@ -1475,6 +1262,9 @@ $ghub-z: 1000;
 
     font-size: 13px;
 
+    /* 防止子元素把行撑破 */
+    min-width: 0;
+
     &+& {
         margin-top: 10px;
     }
@@ -1482,15 +1272,70 @@ $ghub-z: 1000;
     >span:first-child {
         flex-shrink: 0;
     }
+
+    /* 文本项允许收缩并省略，避免长文案挤压滑条 */
+    .ghub-setting-ellipsis {
+        min-width: 0;
+    }
 }
 
+/* ---------- 滑条行：允许内部换行 ---------- */
+
+.ghub-setting-row--slider {
+    /* 窄屏时标签 / 滑条 / 数值可折行 */
+    flex-wrap: wrap;
+    row-gap: 6px;
+
+    .ghub-setting-row-label {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .ghub-setting-value {
+        flex: 0 0 auto;
+        min-width: 34px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+/* ---------- 滑条本体：关键修复 ---------- */
 
 .ghub-setting-range {
+    flex: 1 1 100%;
+    /* 窄屏时独占整行，天然不溢出 */
 
-    flex: 1;
+    /* 关键：解除 flex / 浏览器默认最小宽度限制 */
+    min-width: 0;
+
+    /* 各浏览器兼容，防止轨道撑出容器 */
+    width: 100%;
+    max-width: 100%;
+
+    height: 18px;
+    margin: 0;
 
     accent-color: $ghub-active;
+
+    /* 关掉部分浏览器对 range 的默认内边距 */
+    padding: 0;
+
+    /* Firefox 轨道宽度兜底 */
+    &::-moz-range-track {
+        width: 100%;
+    }
+
+    /* 旧版 WebKit 滑块不影响轨道计算 */
+    &::-webkit-slider-thumb {
+        cursor: pointer;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
 }
+
 
 
 .ghub-setting-wallpapers {
@@ -1502,9 +1347,7 @@ $ghub-z: 1000;
     gap: 8px;
 }
 
-
 .ghub-setting-wallpaper {
-
     position: relative;
 
     aspect-ratio: 1;
@@ -1512,7 +1355,6 @@ $ghub-z: 1000;
     padding: 0;
 
     border: 2px solid transparent;
-
     border-radius: 8px;
 
     overflow: hidden;
@@ -1527,14 +1369,10 @@ $ghub-z: 1000;
 
     img,
     video {
-
         width: 100%;
         height: 100%;
-
         object-fit: cover;
-
         display: block;
-
         pointer-events: none;
     }
 
@@ -1543,14 +1381,10 @@ $ghub-z: 1000;
     }
 
     &.active {
-
         border-color: $ghub-active;
-
-        box-shadow:
-            0 0 0 3px rgba(79, 156, 255, 0.28);
+        box-shadow: 0 0 0 3px rgba(79, 156, 255, 0.28);
     }
 }
-
 
 .ghub-setting-ellipsis {
     flex: 1;
@@ -1640,129 +1474,123 @@ $ghub-z: 1000;
     font-size: 11px;
 }
 
-
 /* =========================================================
  * 面板动画（自右向左展开）
  * ========================================================= */
 
 .ghub-panel-enter-active,
 .ghub-panel-leave-active {
-
-    transition:
-        opacity 0.25s ease;
+    transition: opacity 0.25s ease;
 }
-
 
 .ghub-panel-enter-active .ghub-panel,
 .ghub-panel-leave-active .ghub-panel {
-
     transition:
         opacity 0.3s ease,
         transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-
 .ghub-panel-enter-from,
 .ghub-panel-leave-to {
-
     opacity: 0;
 }
-
 
 .ghub-panel-enter-from .ghub-panel,
 .ghub-panel-leave-to .ghub-panel {
-
     opacity: 0;
-
-    transform:
-        translateX(20px) scale(0.92);
+    transform: translateX(20px) scale(0.92);
 }
-
-
-
-
 
 /* =========================================================
  * 小屏幕
  * ========================================================= */
 
 @media (max-width: 768px) {
-
     .ghub {
-
         right: 10px;
     }
 
-
     .ghub-nav {
-
-        gap: 5px;
-
+        gap: 8px;
         padding: 7px 5px;
     }
 
-
-    .ghub-logo,
+    /* 导航按钮与回到顶部缩小 */
     .ghub-button,
+    .ghub-item,
     .ghub-top-slot,
     .ghub-top-button {
-
-        width: 25px;
-        height: 25px;
+        width: 24px;
+        height: 24px;
     }
 
-    .ghub-item {
-        width: 25px;
-        height: 25px;
+    /* Logo 保持独立尺寸，与导航按钮无联动 */
+    .ghub-logo-wrap {
+        width: 40px;
+        height: 40px;
     }
-
 
     .ghub-button i {
-
-        font-size: 19px;
+        font-size: 13px;
     }
-
 
     .ghub-tooltip {
         display: none;
     }
 
-
     .ghub-submenu {
-
         right: calc(100% + 9px);
-
         min-width: 145px;
     }
 
-
     .ghub-panel-mask {
-
         padding-right: 58px;
         padding-top: 60px;
     }
 
-
     .ghub-panel {
-
         width: 280px;
     }
 
     .ghub-setting-panel {
-
         width: 280px;
     }
-}
 
+    .ghub-setting-panel {
+        width: 280px;
+        /* 面板整体再收一点，给滑条留余量 */
+        padding: 16px;
+    }
+
+    .ghub-setting-group {
+        padding: 10px 12px;
+    }
+
+    .ghub-setting-row--slider {
+        /* 小屏直接纵向堆叠，永远不溢出 */
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+
+        .ghub-setting-row-label,
+        .ghub-setting-value {
+            width: 100%;
+            text-align: left;
+        }
+
+        .ghub-setting-range {
+            flex: 1 1 auto;
+            width: 100%;
+        }
+    }
+}
 
 /* =========================================================
  * 减少动态效果
  * ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-
     .ghub * {
-
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
     }

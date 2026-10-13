@@ -54,7 +54,6 @@
                 <div v-for="post in pagedPosts" :key="post.slug" class="content-cell">
                     <CardPost :post="post" />
                 </div>
-                <div v-for="n in emptyCells" :key="'empty-' + n" class="content-cell post-item-placeholder"></div>
             </template>
 
             <div v-else class="empty-state">
@@ -102,7 +101,6 @@ const router = useRouter()
 ========================= */
 
 const PAGE_SIZE = 12
-const COLUMNS = 4
 /** 列表页路由：已无 /tags，统一走 /articles */
 const LIST_PATH = '/articles'
 
@@ -306,15 +304,6 @@ watch(
         if (t !== 'all') tagExpanded.value = true
     }
 )
-
-/* =========================
-   网格补位
-========================= */
-
-const emptyCells = computed(() => {
-    const remainder = pagedPosts.value.length % COLUMNS
-    return remainder === 0 ? 0 : COLUMNS - remainder
-})
 </script>
 
 <style lang="scss" scoped>
@@ -324,14 +313,15 @@ const emptyCells = computed(() => {
 
 $gap: 20px;
 
-/* 内容区列宽上限（配合固定 4 列，控制大屏下卡片不被拉得过宽） */
+/* 内容区列宽上限（配合自适应列数，控制大屏下卡片不被拉得过宽） */
 $content-max-width: 1280px;
-$card-max-width: 320px;
+
+/* 卡片最小宽度：列数 = 容器宽度 / 该值（向下取整），窗口变化时自动增减列 */
+$card-min-width: 240px;
 
 /* 筛选容器：玻璃胶囊 */
 $menu-bg: rgba(14, 16, 21, 0.5);
 $menu-border: rgba(255, 255, 255, 0.12);
-
 
 /* 内容区 */
 $content-bg: rgba(16, 18, 24, 0.72);
@@ -339,7 +329,6 @@ $content-border: rgba(255, 255, 255, 0.12);
 
 /* 行内文字 */
 $row-label-color: rgba(255, 255, 255, 0.45);
-
 
 $cat-fc: rgba(226, 232, 240, 0.92);
 $cat-bg: #3d63947e;
@@ -406,7 +395,6 @@ $page-ring-active: rgba(79, 156, 255, 0.45);
 
     background: $menu-bg;
     border: 1px solid $menu-border;
-
 }
 
 .filter-row {
@@ -667,7 +655,7 @@ $page-ring-active: rgba(79, 156, 255, 0.45);
 }
 
 /* =========================================================
- * 内容区（方案一：固定 4 列 + 列宽上限 + 居中）
+ * 内容区（自适应列数：auto-fill + minmax）
  * ========================================================= */
 
 .content {
@@ -680,11 +668,9 @@ $page-ring-active: rgba(79, 156, 255, 0.45);
 
     background: $content-bg;
 
-
     display: grid;
-    /* 固定 4 列，每列不超过 $card-max-width，超出部分由 justify-content 居中吸收 */
-    grid-template-columns: repeat(4, minmax(0, $card-max-width));
-    justify-content: center;
+    /* 列宽自适应：每列至少 $card-min-width，容器变宽自动加列，变窄自动减列 */
+    grid-template-columns: repeat(auto-fill, minmax($card-min-width, 1fr));
     align-items: stretch;
     gap: $gap;
     box-sizing: border-box;
@@ -696,23 +682,21 @@ $page-ring-active: rgba(79, 156, 255, 0.45);
     }
 }
 
-/* 每个单元格：负责统一宽度与高度撑满，卡片本身无需再管宽度 */
+/* 每个单元格：宽度撑满列，卡片自身 width:100% 跟随 */
 .content-cell {
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
 
-    :deep(.card-post),
+    /* 让单元格成为卡片的高度基准，保证同行等高 */
+    display: flex;
+    flex-direction: column;
+
     >* {
         width: 100%;
+        height: 100%;
         box-sizing: border-box;
     }
-}
-
-.post-item-placeholder {
-    width: 100%;
-    height: 100%;
-    min-height: 1px;
 }
 
 /* ---------- 空状态 ---------- */

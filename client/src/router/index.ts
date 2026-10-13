@@ -87,22 +87,21 @@ export function registerOverlay(instance: any) {
 
 // let firstLoad = true
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, from) => {
   // 首次进入不做动画
   // if (firstLoad) {
   //   firstLoad = false
-  //   return next()
+  //   return
   // }
 
   // 同页跳转（仅 hash/query 变化）不做动画
-  if (to.path === from.path) return next()
+  if (to.path === from.path) return
 
 
 
   if (overlay) {
     await overlay.cover()
   }
-  next()
 })
 
 
