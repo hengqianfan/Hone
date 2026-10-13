@@ -48,6 +48,10 @@
         </div>
     </div>
 
+
+
+
+
     <!-- ★ 关键：TOC 移出 .post-detail，摆脱 backdrop-filter 包含块 + overflow 裁剪 -->
     <transition name="toc-fade">
         <aside v-if="post && tocList.length" class="toc">
@@ -425,6 +429,9 @@ $toc-font-l5: 11px;
         0 20px 60px rgba(0, 0, 0, 0.65),
         inset 0 1px 0 $glass-highlight;
     transform: translateX(-50px);
+    padding-bottom: 100px;
+
+
 }
 
 /* =========================
@@ -621,6 +628,8 @@ $toc-font-l5: 11px;
     background: $panel-bg;
     // background: rgba(26, 26, 30, 0.6);
     z-index: 100;
+    padding-bottom: 50px;
+
 }
 
 /* =========================

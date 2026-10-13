@@ -1598,6 +1598,13 @@ $ghub-z: 1000;
         height: 24px;
     }
 
+    .ghub-top-button {
+        i {
+            font-size: 12px;
+        }
+    }
+
+
     .ghub-logo-wrap {
         width: 40px;
         height: 40px;
