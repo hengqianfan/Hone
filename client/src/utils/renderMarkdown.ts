@@ -133,6 +133,10 @@ registerContainer('tip', 'is-tip', 'TIP')
 registerContainer('warning', 'is-warning', 'WARNING')
 registerContainer('info', 'is-info', 'INFO')
 registerContainer('danger', 'is-danger', 'DANGER')
+registerContainer('desc', 'is-desc', 'DESC')
+registerContainer('sky', 'is-sky', 'SKY')
+registerContainer('pink', 'is-pink', 'PINK')
+
 
 md.use(container, 'details', {
 

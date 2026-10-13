@@ -292,57 +292,119 @@ $toc-font-l4: 11.5px;
 $toc-font-l5: 11px;
 
 /* =========================
-   顶部进度条
+   顶部进度条（蓝紫 · 呼吸）
 ========================= */
 .progress-bar {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 4px;
+    height: 6px;
     z-index: 9999;
-    background: rgba(0, 0, 0, 0.4);
+    /* 轨道：留一点微亮的底，让进度条边界清晰可辨 */
+
+    background-color: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur($glass-blur);
     -webkit-backdrop-filter: blur($glass-blur);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.7);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.6);
 
     .progress {
         height: 100%;
         width: 0%;
         border-radius: 0 999px 999px 0;
+
+        /* 蓝紫渐变：靛蓝 → 紫罗兰 → 亮蓝，明度抬高，避免发暗 */
         background: linear-gradient(90deg,
-                #6b7280,
-                #9ca3af,
-                #d1d5db,
-                #f3f4f6,
-                #d1d5db,
-                #9ca3af);
+                #7083df,
+                #907de6,
+                #7c83c2,
+                #756f94,
+                #49527e);
         background-size: 220% 100%;
+
         box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.45),
-            0 0 12px rgba(220, 220, 220, 0.3);
-        animation: grayFlow 3s ease-in-out infinite;
-        will-change: width;
+            inset 0 1px 0 rgba(255, 255, 255, 0.35),
+            0 0 10px rgba(122, 92, 255, 0.55),
+            0 0 18px rgba(79, 107, 255, 0.35);
+
+        /* 呼吸 + 渐变流动：两条动画同时跑 */
+        animation:
+            purpleFlow 4s ease-in-out infinite,
+            purpleBreath 2.4s ease-in-out infinite;
+        will-change: width, box-shadow, opacity, filter;
     }
 }
 
-@keyframes grayFlow {
+/* 渐变横向流动 */
+@keyframes purpleFlow {
     0% {
         background-position: 0% 50%;
     }
 
     50% {
-        background-position: 60% 50%;
+        background-position: 100% 50%;
     }
 
     100% {
-        background-position: 100% 50%;
+        background-position: 0% 50%;
     }
 }
 
+/* 呼吸：光晕强弱 + 轻微明度起伏 */
+@keyframes purpleBreath {
+
+    0%,
+    100% {
+        filter: brightness(1) saturate(1);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.32),
+            0 0 8px rgba(122, 92, 255, 0.45),
+            0 0 18px rgba(79, 107, 255, 0.25);
+    }
+
+    50% {
+        filter: brightness(1.12) saturate(1.08);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.45),
+            0 0 14px rgba(140, 110, 255, 0.75),
+            0 0 30px rgba(100, 130, 255, 0.5);
+    }
+}
+
+/* 顶部加一条更亮的蓝紫高光，强化"灵动"感 */
+.progress-bar .progress::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.45),
+            transparent);
+    background-size: 40% 100%;
+    background-repeat: no-repeat;
+    animation: purpleShine 2.8s linear infinite;
+    mix-blend-mode: screen;
+    pointer-events: none;
+}
+
+/* 流光：一道高光反复扫过 */
+@keyframes purpleShine {
+    0% {
+        background-position: -120% 0;
+    }
+
+    100% {
+        background-position: 220% 0;
+    }
+}
+
+/* 无障碍：用户偏好减弱动效时全部停掉 */
 @media (prefers-reduced-motion: reduce) {
-    .progress-bar .progress {
+
+    .progress-bar .progress,
+    .progress-bar .progress::after {
         animation: none;
     }
 }
@@ -615,6 +677,8 @@ $toc-font-l5: 11px;
         overflow-x: hidden;
         padding: 2px 0 8px;
         scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
 
         &::-webkit-scrollbar {
             display: none;
@@ -678,11 +742,6 @@ $toc-font-l5: 11px;
 
         /* =========================================================
            圆点：既是层级节点，也是折叠开关
-           - 与 .toc-text 使用相同的 line-height 和 font-size，
-             再配合 align-items: center，让圆点与首行文字视觉居中
-           - 无子级：纯装饰，不可点击
-           - 有子级：可点击，hover 时出现环形反馈
-           - 收起时：变成空心圈（内圈镂空）
            ========================================================= */
         .toc-dot {
             flex-shrink: 0;
@@ -690,7 +749,6 @@ $toc-font-l5: 11px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            /* 关键：宽度 16px，用行高撑起与文字一致的高度 */
             width: 16px;
             min-width: 16px;
             height: 1em;
@@ -703,10 +761,9 @@ $toc-font-l5: 11px;
             font-size: inherit;
             line-height: inherit;
             -webkit-tap-highlight-color: transparent;
-            /* 让圆点自身的基线盒与文字首行重心一致 */
+            touch-action: manipulation;
             align-self: center;
 
-            /* 内层实心圆点（绝对定位居中，避免受行高影响错位） */
             &::before {
                 content: '';
                 position: absolute;
@@ -725,7 +782,6 @@ $toc-font-l5: 11px;
                     box-shadow 0.2s ease;
             }
 
-            /* hover 时的环形反馈（仅对有子级的按钮生效） */
             &::after {
                 content: '';
                 position: absolute;
@@ -770,7 +826,7 @@ $toc-font-l5: 11px;
             box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
         }
 
-        /* ---------- 各层级差异化（字体 + 圆点尺寸，行高统一） ---------- */
+        /* ---------- 各层级差异化 ---------- */
 
         &.level-2 {
             a {
@@ -873,7 +929,6 @@ $toc-font-l5: 11px;
                 transform: translate(-50%, -50%) scale(1.15);
             }
 
-            /* 激活项若处于收起态，仍保持空心视觉但描边更亮 */
             &.has-children.is-collapsed>.toc-dot::before {
                 background: transparent;
                 box-shadow:
@@ -920,42 +975,227 @@ $toc-font-l5: 11px;
 }
 
 /* =========================
-   移动端适配
+   平板适配（769px - 1024px）
 ========================= */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .post-detail {
         width: 100%;
+    }
+}
+
+/* =========================
+   移动端适配（<= 768px）
+========================= */
+@media (max-width: 768px) {
+
+    /* 进度条：略降高度，减少遮挡感 */
+    .progress-bar {
+        height: 4px;
+    }
+
+    /* 主面板：全宽、去圆角与阴影、去掉横向位移避免溢出 */
+    .post-detail {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
         border-radius: 0;
         border-left: none;
         border-right: none;
+        border-top: none;
         box-shadow: none;
+        transform: none;
     }
 
+    /* 封面：高度自适应，内边距与字号随视口收缩 */
     .hero {
-        min-height: 220px;
+        min-height: clamp(180px, 42vw, 260px);
+        align-items: flex-end;
 
         .hero-inner {
             padding: 20px 16px 18px;
+            gap: 10px;
+        }
+
+        .hero-series-badge {
+            font-size: 11px;
+            padding: 4px 12px;
+            letter-spacing: 0.5px;
         }
 
         .hero-title {
-            font-size: 24px;
-            letter-spacing: 1px;
+            font-size: clamp(20px, 5.5vw, 26px);
+            line-height: 1.3;
+            letter-spacing: 0.5px;
+            padding-bottom: 10px;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+
+            &::after {
+                width: 64px;
+                height: 2px;
+            }
         }
 
         .hero-bottom {
             flex-direction: column;
             align-items: flex-start;
+            gap: 8px;
         }
 
+        .hero-left {
+            gap: 8px;
+            width: 100%;
+        }
+
+        .hero-date {
+            font-size: 12px;
+            margin: 6px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .hero-tags {
+            gap: 8px;
+
+            .hero-tag {
+                font-size: 11px;
+                padding: 4px 11px;
+                transition: none;
+                touch-action: manipulation;
+
+                &:hover {
+                    background: $glass-bg-soft;
+                    border-color: $glass-border;
+                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                }
+
+                &:active {
+                    background: rgba(48, 48, 48, 0.6);
+                    border-color: $glass-border-strong;
+                }
+            }
+        }
+
+        /* 同步区：移动端左对齐，避免右侧留白错位 */
         .hero-sync {
-            align-items: center;
-            flex-wrap: wrap;
+            align-items: flex-start;
+            margin-top: 2px;
+            width: 100%;
+
+            .sync-title {
+                text-align: left;
+                margin-top: 6px;
+                font-size: 11px;
+            }
+
+            .sync-items {
+                padding-right: 0;
+                gap: 8px;
+                flex-wrap: wrap;
+
+                .sync-item i {
+                    font-size: 16px;
+                    padding: 7px;
+                }
+            }
+        }
+    }
+
+    /* 正文：收紧内边距，底部预留安全区 */
+    .content {
+        padding: 18px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* TOC 已隐藏，这里仅兜底避免 fixed 定位残留 */
+    .toc {
+        display: none;
+    }
+}
+
+/* =========================
+   超小屏适配（<= 480px）
+========================= */
+@media (max-width: 480px) {
+    .hero {
+        min-height: 170px;
+
+        .hero-inner {
+            padding: 16px 14px 14px;
+            gap: 8px;
+        }
+
+        .hero-title {
+            font-size: clamp(18px, 5.6vw, 22px);
+            letter-spacing: 0;
+            padding-bottom: 8px;
+        }
+
+        .hero-tags {
+            gap: 6px;
+
+            .hero-tag {
+                font-size: 10.5px;
+                padding: 3px 9px;
+            }
+        }
+
+        .hero-sync .sync-item i {
+            font-size: 15px;
+            padding: 6px;
         }
     }
 
     .content {
-        padding: 18px 16px 10px;
+        padding: 14px 12px calc(18px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* =========================
+   触摸设备：去掉 hover 依赖的动效
+========================= */
+@media (hover: none) and (pointer: coarse) {
+    .hero-tag:active {
+        transform: scale(0.97);
+    }
+
+    .toc-dot.has-children:active::before {
+        background: rgba(255, 255, 255, 0.7);
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+
+    /* 触摸端不触发位移动画，避免抖动 */
+    .toc-item a:hover {
+        transform: none;
+    }
+}
+
+/* =========================
+   横屏矮屏（如手机横屏 / 小笔记本）
+========================= */
+@media (max-height: 500px) and (orientation: landscape) {
+    .hero {
+        min-height: 160px;
+    }
+
+    .toc {
+        max-height: calc(100vh - 24px);
+        top: 12px;
+        padding: 12px 14px;
+    }
+}
+
+/* =========================
+   减少动态效果
+========================= */
+@media (prefers-reduced-motion: reduce) {
+
+    .toc-fade-enter-active,
+    .toc-fade-leave-active,
+    .toc-item a,
+    .hero-tag,
+    .toc-dot::before,
+    .toc-dot::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
     }
 }
 </style>

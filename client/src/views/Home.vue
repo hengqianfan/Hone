@@ -42,7 +42,7 @@ const profile = {
     name: '衡千帆',
     role: '技术爱好者 / 流浪型宅男',
     location: '中国 · 云南',
-    bio: '嗨，欢迎浏览我的博客「 HONE 」',
+    bio: '先完成，再完美，然后完美',
     avatar: './favicon.ico', // 留空显示首字母
 };
 

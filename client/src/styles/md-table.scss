@@ -1,48 +1,77 @@
 .markdown-body {
     table {
-        min-width: 20%;
+        width: auto; // 不铺满，随内容宽度
+        min-width: 20%; // 保持一个下限，可删
         max-width: 100%;
-        border-collapse: collapse;
+        border-collapse: separate; // 圆角必须用 separate
+        border-spacing: 0;
         margin: 16px 0;
-        font-size: var(--md-table-fs);
-
+        font-size: 14px;
+        border: 1px solid #555555; // 外框，稍亮
+        border-radius: 15px; // 圆角
+        overflow: hidden; // 兜底裁剪
+        background-color: #1c1c1c;
     }
 
     tr {
-        border-top: 1px solid #dcdfe6;
-        background-color: var(--md-table-odd-bg);
-
-
+        // 去掉了原来的 border-top，避免双线
     }
 
     tr:nth-child(even) {
-        background: #f6f8fa;
-        background-color: var(--md-table-even-bg);
+        background-color: #262626; // 偶数行浅一点
     }
 
     th,
     td {
         padding: 10px 16px;
-        border: 1px solid #dcdfe6;
+        // 只画右边和下边，避免 collapse 式双线
+        border-right: 1px solid #4a4a4a; // 竖线，对比度提高
+        border-bottom: 1px solid #4a4a4a; // 横线
+    }
 
+    // 最后一列去掉右线，最后一行去掉下边线
+    th:last-child,
+    td:last-child {
+        border-right: none;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
     }
 
     th {
         font-weight: 600;
-        background-color: var(--md-table-title-bg);
+        background-color: #2e2e2e; // 表头更深或更亮
+        color: #f0f0f0;
+        border-bottom: 1px solid #5a5a5a; // 表头分隔线更明显
+    }
 
+    // 四角圆角，配合 separate 生效
+    thead tr:first-child th:first-child {
+        border-top-left-radius: 8px;
+    }
+
+    thead tr:first-child th:last-child {
+        border-top-right-radius: 8px;
+    }
+
+    tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 8px;
+    }
+
+    tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 8px;
     }
 
     .table-wrapper {
         overflow-x: auto;
         margin: 24px 0;
-
-
+        border-radius: 8px; // 滚动容器也加圆角
     }
 
     .table-wrapper table {
-
-        min-width: 600px;
+        // 去掉 min-width: 600px（那是强制铺满/拉宽的源头）
+        min-width: 0;
         box-shadow:
             0 1px 2px rgba(0, 0, 0, .04),
             0 8px 24px rgba(0, 0, 0, .04);

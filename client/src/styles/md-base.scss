@@ -10,6 +10,7 @@
 
     color: rgb(240, 235, 230);
     padding: 5px;
+    letter-spacing: 0.3px;
 
     // 文本加粗
     strong,
@@ -63,16 +64,27 @@
         margin: 24px 0;
     }
 
-    /* 引用块 */
+    /* =========================
+   引用块
+========================= */
     blockquote {
-        // margin: 16px 0;
         padding: 15px;
-        background: rgba(var(--bg-base-color), 0.8);
-        color: #999;
-        border-radius: 6px;
-        font-size: 14px;
-    }
+        margin: 16px 0;
+        color: #cfcfcf;
 
+        /* 极低透明度的白色叠底,近乎完全透明 */
+        background: rgba(255, 255, 255, 0.04);
+
+        border-left: 6px solid rgba(79, 79, 79, 0.8);
+        // border-radius: 6px;
+        font-size: 14px;
+        line-height: 1.7;
+
+        code {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            color: #f5f5f5 !important;
+        }
+    }
 
 
 
@@ -90,26 +102,26 @@
     }
 
     /* 行内代码 */
+    /* 行内代码 */
     p>code,
     li>code,
     td>code,
     blockquote>code {
-
-        background-color: rgba(202, 209, 215, 0.434);
         margin: 0 3px;
-        padding: 3px 8px;
+        padding: 3px 6px;
         border-radius: 5px;
-        font-size: 14px;
-        letter-spacing: 1px;
-        color: #3451b2;
-        font-family: '优设标题黑';
-        // font-weight: 1000;
-        // 字符间距
-
-
-
+        font-size: 13px;
+        letter-spacing: 0;
+        /* 去掉，中英文混排更稳 */
+        color: #c8d3f5;
+        /* 亮字，暗底 */
+        background-color: #333333;
+        /* 深底，融入黑主题 */
+        border: 1px solid #454545;
+        /* 描边增加轮廓感 */
+        font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+        font-weight: 400;
     }
-
 
     // 自定义语法 -=-
     .md-space-3 {

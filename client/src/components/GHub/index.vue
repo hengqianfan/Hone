@@ -49,11 +49,21 @@
                 </div>
             </nav>
 
-            <!-- ============ 回到顶部 ============ -->
+            <!-- ============ 回到顶部（带阅读进度环） ============ -->
             <div class="ghub-top-slot">
                 <Transition name="ghub-top">
-                    <button v-if="showBackTop" class="ghub-top-button" type="button" aria-label="回到顶部"
+                    <button v-if="showBackTop" class="ghub-top-button" type="button"
+                        :aria-label="`回到顶部，当前阅读进度 ${roundedProgress}%`" :title="`阅读进度 ${roundedProgress}%`"
                         @click="backToTop">
+                        <!-- 进度环 -->
+                        <svg class="ghub-top-ring" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+                            <!-- 轨道 -->
+                            <circle class="ghub-top-ring-track" cx="50" cy="50" :r="RING_RADIUS" />
+                            <!-- 进度 -->
+                            <circle class="ghub-top-ring-progress" :class="{ 'is-full': roundedProgress >= 100 }"
+                                cx="50" cy="50" :r="RING_RADIUS" :style="ringStyle" />
+                        </svg>
+
                         <i class="iconfont icon-top"></i>
                     </button>
                 </Transition>
@@ -199,7 +209,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useLocalWallpaper } from '@/utils/useLocalWallpaper'
 import Countdown from '@/components/countdown/index.vue'
@@ -265,20 +275,17 @@ const socials: Social[] = [
 
 /* =========================================================
  * 面板统一状态源：'logo' | 'setting' | null
- * Logo 与 设置按钮各自独立触发，互不耦合
  * ========================================================= */
 
 type PanelName = 'logo' | 'setting' | null
 
 const activePanel = ref<PanelName>(null)
 
-/** 打开 / 切换指定面板（关闭其它面板） */
 const togglePanel = (name: Exclude<PanelName, null>) => {
     activePanel.value = activePanel.value === name ? null : name
     openedMenu.value = null
 }
 
-/** 关闭所有面板 */
 const closePanel = () => {
     activePanel.value = null
 }
@@ -359,12 +366,68 @@ const goHome = () => {
     closePanel()
 }
 
-/* ---------------- 回到顶部 ---------------- */
+/* =========================================================
+ * 回到顶部 + 阅读进度环
+ * ========================================================= */
 
 const showBackTop = ref(false)
+/** 页面阅读进度 0 ~ 100 */
+const progress = ref(0)
+
+/* --- 环形几何常量 --- */
+/** SVG 内部坐标系半径（viewBox 100x100） */
+const RING_RADIUS = 46
+/** 圆周长 */
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
+
+/** 用于展示与 aria 的整数进度 */
+const roundedProgress = computed(() => Math.round(progress.value))
+
+/**
+ * 进度环样式：
+ * 用 stroke-dashoffset 把「已走完的弧长」露出来
+ */
+const ringStyle = computed(() => {
+    const ratio = Math.min(1, Math.max(0, progress.value / 100))
+    const offset = RING_CIRCUMFERENCE * (1 - ratio)
+    return {
+        strokeDasharray: `${RING_CIRCUMFERENCE}`,
+        strokeDashoffset: `${offset}`,
+    }
+})
+
+/** 计算滚动进度 */
+const calcProgress = () => {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop || 0
+    const docHeight =
+        document.documentElement.scrollHeight - document.documentElement.clientHeight
+
+    if (docHeight <= 0) {
+        progress.value = 100
+        return
+    }
+
+    const raw = (scrollTop / docHeight) * 100
+    progress.value = Math.min(100, Math.max(0, raw))
+}
+
+/**
+ * 滚动处理：
+ * - 阈值判断是否显示回到顶部
+ * - 计算阅读进度
+ * 用 rAF 节流，避免高频重排
+ */
+let ticking = false
 
 const checkScroll = () => {
-    showBackTop.value = window.scrollY > 300
+    if (ticking) return
+    ticking = true
+
+    requestAnimationFrame(() => {
+        showBackTop.value = window.scrollY > 300
+        calcProgress()
+        ticking = false
+    })
 }
 
 const backToTop = () => {
@@ -391,6 +454,7 @@ const onKeydown = (event: KeyboardEvent) => {
 
 onMounted(async () => {
     window.addEventListener('scroll', checkScroll, { passive: true })
+    window.addEventListener('resize', checkScroll, { passive: true })
     document.addEventListener('click', onDocumentClick)
     window.addEventListener('keydown', onKeydown)
 
@@ -421,34 +485,35 @@ watch(
 
 onBeforeUnmount(() => {
     window.removeEventListener('scroll', checkScroll)
+    window.removeEventListener('resize', checkScroll)
     document.removeEventListener('click', onDocumentClick)
     window.removeEventListener('keydown', onKeydown)
 })
 
-/* ---------------- 路由变化关闭菜单 ---------------- */
+/* ---------------- 路由变化关闭菜单 & 刷新进度 ---------------- */
 
 watch(
     () => route.fullPath,
-    () => {
+    async () => {
         openedMenu.value = null
         activePanel.value = null
+
+        // 路由切换后重新计算进度（新页面高度不同）
+        await new Promise(resolve => setTimeout(resolve, 0))
+        calcProgress()
     }
 )
 </script>
 
 <style lang="scss" scoped>
 /* =========================================================
- * 设计令牌（全部变量集中在此，黑透玻璃风格）
+ * 设计令牌（黑透玻璃风格）
  * ========================================================= */
 
-/* ---------- 尺寸：拆分独立令牌，互不耦合 ---------- */
-
-$logo-size: 45px; // Logo 独立尺寸
-$nav-item-size: 30px; // 导航按钮尺寸
-$nav-size: 45px; // 导航胶囊宽度基准
-$top-size: 45px; // 回到顶部尺寸
-
-/* ---------- 玻璃底色（黑透） ---------- */
+$logo-size: 45px;
+$nav-item-size: 30px;
+$nav-size: 45px;
+$top-size: 45px;
 
 $ghub-logo-bg: rgba(18, 20, 26, 0.55);
 $ghub-logo-bg-hover: rgba(28, 31, 40, 0.72);
@@ -460,18 +525,12 @@ $ghub-panel-bg: rgba(16, 18, 24, 0.72);
 $ghub-card-bg: rgba(255, 255, 255, 0.06);
 $ghub-card-bg-strong: rgba(255, 255, 255, 0.1);
 
-/* ---------- 边框 ---------- */
-
 $ghub-border: rgba(255, 255, 255, 0.12);
 $ghub-border-strong: rgba(255, 255, 255, 0.2);
-
-/* ---------- 文字 ---------- */
 
 $ghub-text: rgba(255, 255, 255, 0.88);
 $ghub-text-strong: #ffffff;
 $ghub-text-muted: rgba(255, 255, 255, 0.55);
-
-/* ---------- 图标 / 按钮状态 ---------- */
 
 $ghub-option-fc: rgba(255, 255, 255, 0.82);
 $ghub-option-fc-hover: #ffffff;
@@ -481,22 +540,14 @@ $ghub-option-bg: transparent;
 $ghub-option-bg-hover: rgba(255, 255, 255, 0.12);
 $ghub-option-bg-active: rgba(255, 255, 255, 0.18);
 
-/* ---------- 强调色 ---------- */
-
 $ghub-active: #3d6394;
 $ghub-active-bg: rgba(79, 156, 255, 0.22);
 $ghub-active-border: rgba(79, 156, 255, 0.45);
 
-/* ---------- Logo 打开态透明度 ---------- */
-
 $ghub-logo-opacity-active: 0.7;
-
-/* ---------- 轻量阴影 ---------- */
 
 $ghub-shadow-soft: 0 4px 14px rgba(0, 0, 0, 0.22);
 $ghub-shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.3);
-
-/* ---------- 层级 ---------- */
 
 $ghub-z: 1000;
 
@@ -532,8 +583,7 @@ $ghub-z: 1000;
 }
 
 /* =========================================================
- * Logo 独立区块：完全与导航解耦
- * 独立尺寸、独立样式、独立状态
+ * Logo 独立区块
  * ========================================================= */
 
 .ghub-logo-wrap {
@@ -585,7 +635,6 @@ $ghub-z: 1000;
         border-color: $ghub-border-strong;
     }
 
-    /* Logo 打开态：仅作用于自身，与设置按钮无关 */
     &.is-open {
         opacity: $ghub-logo-opacity-active;
         transform: rotate(90deg) scale(1.06);
@@ -795,10 +844,6 @@ $ghub-z: 1000;
     z-index: 9010;
 }
 
-/* =========================================================
- * 子菜单标题
- * ========================================================= */
-
 .ghub-submenu-title {
     padding: 5px 9px 8px;
 
@@ -807,10 +852,6 @@ $ghub-z: 1000;
     font-size: 11px;
     letter-spacing: 0.5px;
 }
-
-/* =========================================================
- * 子菜单按钮
- * ========================================================= */
 
 .ghub-submenu-item {
     width: 100%;
@@ -872,10 +913,6 @@ $ghub-z: 1000;
     font-size: 12px !important;
 }
 
-/* =========================================================
- * 子菜单动画（从右向左滑出）
- * ========================================================= */
-
 .ghub-submenu-enter-active,
 .ghub-submenu-leave-active {
     transition:
@@ -890,7 +927,7 @@ $ghub-z: 1000;
 }
 
 /* =========================================================
- * 设置按钮：仅设置按钮自身的打开态，与 Logo 解耦
+ * 设置按钮
  * ========================================================= */
 
 .ghub-setting {
@@ -898,7 +935,6 @@ $ghub-z: 1000;
         font-size: 16px;
     }
 
-    /* 面板打开态：缩小一半 + 隐藏图标 + 激活色背景 */
     &.is-open,
     &.is-open:hover {
         transform: scale(0.5);
@@ -915,7 +951,7 @@ $ghub-z: 1000;
 }
 
 /* =========================================================
- * 回到顶部：占位槽 + 绝对定位按钮
+ * 回到顶部：占位槽 + 绝对定位按钮 + 进度环
  * ========================================================= */
 
 .ghub-top-slot {
@@ -948,14 +984,20 @@ $ghub-z: 1000;
     align-items: center;
     justify-content: center;
 
+    /* 进度环绝对定位铺满按钮 */
+    overflow: visible;
+
     transition:
         transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
         background 0.25s ease,
         color 0.25s ease,
         border-color 0.25s ease;
 
-    i {
+    >i {
+        position: relative;
+        z-index: 1;
         font-size: 16px;
+        transition: transform 0.25s ease;
     }
 
     &:hover {
@@ -963,7 +1005,68 @@ $ghub-z: 1000;
         background: $ghub-active;
         border-color: $ghub-active-border;
         transform: scale(1.08);
+
+        >i {
+            transform: translateY(-1px);
+        }
     }
+
+    &:active {
+        transform: scale(0.96);
+    }
+}
+
+/* ---------- 进度环本体 ---------- */
+
+.ghub-top-ring {
+    position: absolute;
+    /* 让环略微超出一圈，视觉上包裹按钮 */
+    inset: -3px;
+
+    width: calc(100% + 6px);
+    height: calc(100% + 6px);
+
+    /* 环从 12 点钟方向开始 */
+    transform: rotate(-90deg);
+
+    pointer-events: none;
+    overflow: visible;
+}
+
+/* 轨道：淡淡的底圈，保证 0% 时也能看出环形结构 */
+.ghub-top-ring-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.14);
+    stroke-width: 3;
+}
+
+/* 进度弧 */
+.ghub-top-ring-progress {
+    fill: none;
+
+    stroke: $ghub-active-border;
+    stroke-width: 3;
+    stroke-linecap: round;
+
+    /* 让进度变化平滑跟随滚动 */
+    transition:
+        stroke-dashoffset 0.15s linear,
+        stroke 0.25s ease;
+
+    /* 轻微发光，在深色背景上更清晰 */
+    filter: drop-shadow(0 0 3px rgba(114, 151, 199, 0.55));
+}
+
+/* 读满时：换成更亮的强调色并加强发光，作为一个完成反馈 */
+.ghub-top-ring-progress.is-full {
+    stroke: #adbfdb;
+    filter: drop-shadow(0 0 6px rgba(137, 168, 214, 0.85));
+}
+
+/* hover 时进度弧跟着变亮 */
+.ghub-top-button:hover .ghub-top-ring-progress {
+    stroke: #a8ccff;
+    filter: drop-shadow(0 0 6px rgba(168, 204, 255, 0.8));
 }
 
 /* =========================================================
@@ -1025,10 +1128,6 @@ $ghub-z: 1000;
     box-shadow: $ghub-shadow-pop;
 }
 
-/* =========================================================
- * 面板头部
- * ========================================================= */
-
 .ghub-panel-header {
     display: flex;
     align-items: center;
@@ -1079,10 +1178,6 @@ $ghub-z: 1000;
     }
 }
 
-/* =========================================================
- * 个人介绍
- * ========================================================= */
-
 .ghub-panel-profile {
     padding: 12px 14px;
 
@@ -1108,10 +1203,6 @@ $ghub-z: 1000;
     margin-top: 16px;
     border-radius: 11px;
 }
-
-/* =========================================================
- * 社交
- * ========================================================= */
 
 .ghub-panel-socials {
     display: flex;
@@ -1262,7 +1353,6 @@ $ghub-z: 1000;
 
     font-size: 13px;
 
-    /* 防止子元素把行撑破 */
     min-width: 0;
 
     &+& {
@@ -1273,16 +1363,12 @@ $ghub-z: 1000;
         flex-shrink: 0;
     }
 
-    /* 文本项允许收缩并省略，避免长文案挤压滑条 */
     .ghub-setting-ellipsis {
         min-width: 0;
     }
 }
 
-/* ---------- 滑条行：允许内部换行 ---------- */
-
 .ghub-setting-row--slider {
-    /* 窄屏时标签 / 滑条 / 数值可折行 */
     flex-wrap: wrap;
     row-gap: 6px;
 
@@ -1299,16 +1385,11 @@ $ghub-z: 1000;
     }
 }
 
-/* ---------- 滑条本体：关键修复 ---------- */
-
 .ghub-setting-range {
     flex: 1 1 100%;
-    /* 窄屏时独占整行，天然不溢出 */
 
-    /* 关键：解除 flex / 浏览器默认最小宽度限制 */
     min-width: 0;
 
-    /* 各浏览器兼容，防止轨道撑出容器 */
     width: 100%;
     max-width: 100%;
 
@@ -1317,15 +1398,12 @@ $ghub-z: 1000;
 
     accent-color: $ghub-active;
 
-    /* 关掉部分浏览器对 range 的默认内边距 */
     padding: 0;
 
-    /* Firefox 轨道宽度兜底 */
     &::-moz-range-track {
         width: 100%;
     }
 
-    /* 旧版 WebKit 滑块不影响轨道计算 */
     &::-webkit-slider-thumb {
         cursor: pointer;
     }
@@ -1335,8 +1413,6 @@ $ghub-z: 1000;
         opacity: 0.5;
     }
 }
-
-
 
 .ghub-setting-wallpapers {
     padding: 10px 0;
@@ -1413,7 +1489,6 @@ $ghub-z: 1000;
     }
 }
 
-/* 设置面板内的跳转按钮（占满整行） */
 .ghub-setting-nav {
     display: flex;
     align-items: center;
@@ -1475,7 +1550,7 @@ $ghub-z: 1000;
 }
 
 /* =========================================================
- * 面板动画（自右向左展开）
+ * 面板动画
  * ========================================================= */
 
 .ghub-panel-enter-active,
@@ -1515,7 +1590,6 @@ $ghub-z: 1000;
         padding: 7px 5px;
     }
 
-    /* 导航按钮与回到顶部缩小 */
     .ghub-button,
     .ghub-item,
     .ghub-top-slot,
@@ -1524,7 +1598,6 @@ $ghub-z: 1000;
         height: 24px;
     }
 
-    /* Logo 保持独立尺寸，与导航按钮无联动 */
     .ghub-logo-wrap {
         width: 40px;
         height: 40px;
@@ -1554,11 +1627,6 @@ $ghub-z: 1000;
 
     .ghub-setting-panel {
         width: 280px;
-    }
-
-    .ghub-setting-panel {
-        width: 280px;
-        /* 面板整体再收一点，给滑条留余量 */
         padding: 16px;
     }
 
@@ -1567,7 +1635,6 @@ $ghub-z: 1000;
     }
 
     .ghub-setting-row--slider {
-        /* 小屏直接纵向堆叠，永远不溢出 */
         flex-direction: column;
         align-items: stretch;
         gap: 6px;
@@ -1593,6 +1660,11 @@ $ghub-z: 1000;
     .ghub * {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
+    }
+
+    /* 进度环也别做过渡动画，直接跟随 */
+    .ghub-top-ring-progress {
+        transition: none !important;
     }
 }
 </style>
